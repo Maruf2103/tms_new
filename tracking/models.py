@@ -1,9 +1,9 @@
 from django.db import models
-from buses.models import Bus
+from buses.models import Buses
 from django.utils import timezone
 
 class BusLocation(models.Model):
-    bus = models.ForeignKey(Bus, on_delete=models.CASCADE, related_name='locations')
+    bus = models.ForeignKey(Buses, on_delete=models.CASCADE, related_name='locations')
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
     speed = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Speed in km/h")
@@ -28,7 +28,7 @@ class BusStatus(models.Model):
         ('not_running', 'Not Running'),
     )
     
-    bus = models.OneToOneField(Bus, on_delete=models.CASCADE, related_name='current_status')
+    bus = models.OneToOneField(Buses, on_delete=models.CASCADE, related_name='current_status')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_running')
     current_stop = models.CharField(max_length=200, blank=True)
     estimated_arrival = models.TimeField(null=True, blank=True)
@@ -51,7 +51,7 @@ class Notification(models.Model):
         ('general', 'General'),
     )
     
-    bus = models.ForeignKey(Bus, on_delete=models.CASCADE, related_name='notifications')
+    bus = models.ForeignKey(Buses, on_delete=models.CASCADE, related_name='notifications')
     notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPE_CHOICES)
     title = models.CharField(max_length=200)
     message = models.TextField()

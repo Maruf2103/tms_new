@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% extends 'base/base.html' %}
+
+{% block title %}My Registrations - UAP TMS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-clipboard-list"></i> My Registrations</h2>
+    </div>
+</div>
+
+<div class="row">
+    {% for registration in registrations %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-{% if registration.status == 'active' %}success{% elif registration.status == 'pending' %}warning{% else %}danger{% endif %} text-white">
+                <h5 class="mb-0">
+                    {{ registration.bus_schedule.bus.bus_number }} - {{ registration.bus_schedule.bus.bus_name }}
+                    <span class="badge bg-light text-dark float-end">{{ registration.get_status_display }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <p><strong><i class="fas fa-id-card"></i> Registration ID:</strong> {{ registration.registration_id }}</p>
+                <p><strong><i class="fas fa-route"></i> Route:</strong> {{ registration.bus_schedule.route.route_name }}</p>
+                <p><strong><i class="fas fa-clock"></i> Shift:</strong> {{ registration.bus_schedule.get_shift_display }}</p>
+                <p><strong><i class="fas fa-hourglass-start"></i> Time:</strong> {{ registration.bus_schedule.departure_time }}</p>
+                <p><strong><i class="fas fa-calendar"></i> Valid From:</strong> {{ registration.valid_from }}</p>
+                <p><strong><i class="fas fa-calendar"></i> Valid Until:</strong> {{ registration.valid_until }}</p>
+                <p><strong><i class="fas fa-money-bill"></i> Payment Status:</strong>
+                    <span class="badge bg-{% if registration.payment_status == 'paid' %}success{% else %}warning{% endif %}">
+                        {{ registration.get_payment_status_display }}
+                    </span>
+                </p>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'registrations:registration_detail' registration.registration_id %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-eye"></i> View Details
+                </a>
+                {% if registration.status == 'active' or registration.status == 'pending' %}
+                <a href="{% url 'registrations:cancel_registration' registration.registration_id %}" class="btn btn-danger btn-sm">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> You don't have any registrations yet.
+            <a href="{% url 'registrations:register_bus' %}" class="alert-link">Register for a bus now!</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+</body>
+</html>

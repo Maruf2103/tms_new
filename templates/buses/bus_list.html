@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% extends 'base/base.html' %}
+
+{% block title %}Buses - UAP TMS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-bus"></i> Available Buses</h2>
+    </div>
+    <div class="col-md-4">
+        <form method="get" class="d-flex">
+            <input type="text" name="search" class="form-control me-2" placeholder="Search buses..." value="{{ search_query }}">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% for bus in buses %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            {% if bus.bus_image %}
+            <img src="{{ bus.bus_image.url }}" class="card-img-top" alt="{{ bus.bus_name }}" style="height: 200px; object-fit: cover;">
+            {% else %}
+            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                <i class="fas fa-bus fa-5x text-white"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ bus.bus_number }}</h5>
+                <p class="card-text">{{ bus.bus_name }}</p>
+                <p class="mb-1"><strong>Type:</strong> {{ bus.bus_type }}</p>
+                <p class="mb-1"><strong>Capacity:</strong> {{ bus.capacity }} seats</p>
+                <p class="mb-3">
+                    <span class="badge bg-{{ bus.status|yesno:'success,danger' }}">
+                        {{ bus.get_status_display }}
+                    </span>
+                </p>
+                <a href="{% url 'buses:bus_detail' bus.id %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-info-circle"></i> View Details
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No buses found.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+</body>
+</html>
