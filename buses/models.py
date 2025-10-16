@@ -1,72 +1,111 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import Bus, BusSchedule, Route, Registration
-from django.db.models import Q
+from django.db import models
+from django.core.validators import MinValueValidator
 
 
-@login_required
-def bus_registration_view(request):
-    # Complete profile check (simplified)
-    if not request.user.first_name or not request.user.last_name:
-        messages.warning(request, 'Please complete your profile first.')
-        return redirect('complete_profile')
 
-    routes = Route.objects.all()
-    selected_route = None
-    schedules = None
+class Buses(models.Model):
+    BUS_STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('maintenance', 'Maintenance'),
+    )
 
-    if request.method == 'POST':
-        route_id = request.POST.get('route')
-        schedule_id = request.POST.get('schedule')
+    bus_number = models.CharField(max_length=20, unique=True)
+    bus_name = models.CharField(max_length=100)
+    capacity = models.IntegerField(validators=[MinValueValidator(1)])
+    bus_type = models.CharField(max_length=50, default='AC')  # AC/Non-AC
+    status = models.CharField(max_length=20, choices=BUS_STATUS_CHOICES, default='active')
+    registration_plate = models.CharField(max_length=20, unique=True)
+    bus_image = models.ImageField(upload_to='bus_images/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-        if route_id:
-            selected_route = Route.objects.get(id=route_id)
-            schedules = BusSchedule.objects.filter(bus__route_name=selected_route.route_name)
+    def __str__(self):
+        return f"{self.bus_number} - {self.bus_name}"
 
-        if schedule_id:
-            schedule = BusSchedule.objects.get(id=schedule_id)
-            # Check if already registered
-            if Registration.objects.filter(user=request.user, bus_schedule=schedule).exists():
-                messages.error(request, 'You are already registered for this bus schedule.')
-            elif schedule.available_seats > 0:
-                registration = Registration(user=request.user, bus_schedule=schedule)
-                registration.save()
-                messages.success(request, 'Successfully registered for the bus!')
-                return redirect('payment', registration_id=registration.id)
-            else:
-                messages.error(request, 'No available seats for this schedule.')
+    def available_seats(self):
+        """Calculate available seats based on active registrations"""
+        from registrations.models import BusRegistration
+        active_registrations = BusRegistration.objects.filter(
+            bus_schedule__bus=self,
+            status='active'
+        ).count()
+        return self.capacity - active_registrations
 
-    return render(request, 'bus/registration.html', {
-        'routes': routes,
-        'selected_route': selected_route,
-        'schedules': schedules
-    })
+    class Meta:
+        ordering = ['bus_number']
+        verbose_name_plural = 'Buses'
 
 
-@login_required
-def complete_profile_view(request):
-    if request.method == 'POST':
-        request.user.first_name = request.POST.get('first_name')
-        request.user.last_name = request.POST.get('last_name')
-        request.user.email = request.POST.get('email')
-        request.user.save()
-        messages.success(request, 'Profile updated successfully!')
-        return redirect('bus_registration')
+class Route(models.Model):
+    route_name = models.CharField(max_length=200)
+    start_point = models.CharField(max_length=200)
+    end_point = models.CharField(max_length=200)
+    total_distance = models.DecimalField(max_digits=6, decimal_places=2, help_text="Distance in KM")
+    estimated_duration = models.IntegerField(help_text="Duration in minutes")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-    return render(request, 'bus/complete_profile.html')
+    def __str__(self):
+        return f"{self.route_name} ({self.start_point} - {self.end_point})"
+
+    class Meta:
+        ordering = ['route_name']
 
 
-@login_required
-def payment_view(request, registration_id):
-    registration = Registration.objects.get(id=registration_id, user=request.user)
+class RouteStop(models.Model):
+    route = models.ForeignKey(Route, on_delete=models.CASCADE, related_name='stops')
+    stop_name = models.CharField(max_length=200)
+    stop_order = models.IntegerField()
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
-    if request.method == 'POST':
-        # Simulate payment processing
-        registration.payment_status = True
-        registration.payment_amount = 50.00  # Fixed amount for demo
-        registration.save()
-        messages.success(request, 'Payment successful! Registration completed.')
-        return redirect('dashboard')
+    def __str__(self):
+        return f"{self.route.route_name} - {self.stop_name}"
 
-    return render(request, 'bus/payment.html', {'registration': registration})
+    class Meta:
+        ordering = ['route', 'stop_order']
+        unique_together = ['route', 'stop_order']
+
+
+class BusSchedule(models.Model):
+    SHIFT_CHOICES = (
+        ('morning', 'Morning'),
+        ('afternoon', 'Afternoon'),
+        ('evening', 'Evening'),
+    )
+
+    DAY_CHOICES = (
+        ('sunday', 'Sunday'),
+        ('monday', 'Monday'),
+        ('tuesday', 'Tuesday'),
+        ('wednesday', 'Wednesday'),
+        ('thursday', 'Thursday'),
+        ('friday', 'Friday'),
+        ('saturday', 'Saturday'),
+    )
+
+    bus = models.ForeignKey(Buses, on_delete=models.CASCADE, related_name='schedules')
+    route = models.ForeignKey(Route, on_delete=models.CASCADE, related_name='schedules')
+    shift = models.CharField(max_length=20, choices=SHIFT_CHOICES)
+    departure_time = models.TimeField()
+    arrival_time = models.TimeField()
+    days_of_week = models.CharField(max_length=200, help_text="Comma-separated days: sunday,monday,etc")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.bus.bus_number} - {self.route.route_name} ({self.shift})"
+
+    def available_seats(self):
+        from registrations.models import BusRegistration
+        active_registrations = BusRegistration.objects.filter(
+            bus_schedule=self,
+            status='active'
+        ).count()
+        return self.bus.capacity - active_registrations
+
+    class Meta:
+        ordering = ['departure_time']
+        unique_together = ['bus', 'route', 'shift', 'departure_time']
