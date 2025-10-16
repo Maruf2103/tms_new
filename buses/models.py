@@ -85,7 +85,7 @@ class BusSchedule(models.Model):
         ('saturday', 'Saturday'),
     )
 
-    bus = models.ForeignKey(Buses, on_delete=models.CASCADE, related_name='schedules')
+    bus = models.ForeignKey(Bus, on_delete=models.CASCADE, related_name='schedules')
     route = models.ForeignKey(Route, on_delete=models.CASCADE, related_name='schedules')
     shift = models.CharField(max_length=20, choices=SHIFT_CHOICES)
     departure_time = models.TimeField()
