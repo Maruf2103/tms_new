@@ -1,141 +1,54 @@
-{% extends 'base/base.html' %}
-
-{% block title %}Dashboard - UAP TMS{% endblock %}
-
-{% block content %}
-<div class="row">
-    <div class="col-12">
-        <h2 class="mb-4">
-            <i class="fas fa-home"></i> Welcome, {{ user.username }}!
-        </h2>
-    </div>
-</div>
-
-<div class="row">
-    <!-- Profile Card -->
-    <div class="col-md-4 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-user"></i> Profile Information
-            </div>
-            <div class="card-body text-center">
-                {% if profile.profile_picture %}
-                    <img src="{{ profile.profile_picture.url }}" alt="Profile" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
-                {% else %}
-                    <i class="fas fa-user-circle fa-5x text-secondary mb-3"></i>
-                {% endif %}
-                <h5>{{ profile.full_name|default:user.username }}</h5>
-                <p class="text-muted">{{ user.get_user_type_display }}</p>
-                <p class="mb-1"><strong>ID:</strong> {{ profile.user_id|default:"N/A" }}</p>
-                <p class="mb-3"><strong>Department:</strong> {{ profile.department|default:"N/A" }}</p>
-                <a href="{% url 'accounts:profile' %}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-edit"></i> Edit Profile
-                </a>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - UAP-TMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">UAP-TMS</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3">Welcome, {{ user.username }}</span>
+                <a class="nav-link" href="{% url 'signout' %}">Sign Out</a>
             </div>
         </div>
-    </div>
+    </nav>
 
-    <!-- Quick Actions -->
-    <div class="col-md-8 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-bolt"></i> Quick Actions
-            </div>
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> <strong>Coming Soon!</strong>
-                    Bus management, registration, and tracking features will be available once your teammates complete their modules.
+    <div class="container mt-4">
+        <h2>Dashboard</h2>
+
+        <div class="row mt-4">
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Bus Registration</h5>
+                        <p class="card-text">Register for bus services and manage your bookings.</p>
+                        <a href="{% url 'bus_registration' %}" class="btn btn-primary">Register Now</a>
+                    </div>
                 </div>
+            </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <div class="card text-center h-100 border-secondary">
-                            <div class="card-body">
-                                <i class="fas fa-bus fa-3x text-secondary mb-2"></i>
-                                <h5>View Buses</h5>
-                                <p class="text-muted">Coming soon...</p>
-                                <small class="text-muted">Zakir's Module</small>
-                            </div>
-                        </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Live Location</h5>
+                        <p class="card-text">Track buses in real-time on campus routes.</p>
+                        <a href="{% url 'live_location' %}" class="btn btn-success">View Live Map</a>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="card text-center h-100 border-secondary">
-                            <div class="card-body">
-                                <i class="fas fa-clipboard-check fa-3x text-secondary mb-2"></i>
-                                <h5>Register for Bus</h5>
-                                <p class="text-muted">Coming soon...</p>
-                                <small class="text-muted">Zakir's Module</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="card text-center h-100 border-secondary">
-                            <div class="card-body">
-                                <i class="fas fa-list fa-3x text-secondary mb-2"></i>
-                                <h5>My Registrations</h5>
-                                <p class="text-muted">Coming soon...</p>
-                                <small class="text-muted">Zakir's Module</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="card text-center h-100 border-secondary">
-                            <div class="card-body">
-                                <i class="fas fa-map-marker-alt fa-3x text-secondary mb-2"></i>
-                                <h5>Live Tracking</h5>
-                                <p class="text-muted">Coming soon...</p>
-                                <small class="text-muted">Retu's Module</small>
-                            </div>
-                        </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">View Schedule</h5>
+                        <p class="card-text">Check bus schedules and timings.</p>
+                        <a href="{% url 'view_schedule' %}" class="btn btn-info">View Schedule</a>
                     </div>
                 </div>
             </div>
         </div>
-
-        {% if user.user_type == 'authority' %}
-        <!-- Authority Panel -->
-        <div class="card mt-4">
-            <div class="card-header bg-warning text-dark">
-                <i class="fas fa-crown"></i> Authority Access
-            </div>
-            <div class="card-body">
-                <a href="{% url 'accounts:control_panel' %}" class="btn btn-warning">
-                    <i class="fas fa-cog"></i> Access Control Panel
-                </a>
-                <p class="mt-2 mb-0 text-muted">Manage buses, routes, and registrations (available after team completes modules)</p>
-            </div>
-        </div>
-        {% endif %}
     </div>
-</div>
-
-<!-- Team Progress Section -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-users"></i> Team Progress
-            </div>
-            <div class="card-body">
-                <h6>Module Development Status:</h6>
-                <div class="progress mb-2" style="height: 25px;">
-                    <div class="progress-bar bg-success" role="progressbar" style="width: 33%;">
-                        <strong>Samia: Accounts ✅</strong>
-                    </div>
-                    <div class="progress-bar bg-warning text-dark" role="progressbar" style="width: 33%;">
-                        <strong>Zakir: Buses ⏳</strong>
-                    </div>
-                    <div class="progress-bar bg-info" role="progressbar" style="width: 34%;">
-                        <strong>Retu: Tracking ⏳</strong>
-                    </div>
-                </div>
-                <p class="mb-0 text-muted small">
-                    <i class="fas fa-check text-success"></i> Accounts & Authentication - Complete<br>
-                    <i class="fas fa-clock text-warning"></i> Bus Management & Registration - In Progress<br>
-                    <i class="fas fa-clock text-info"></i> Live Tracking - In Progress
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+</body>
+</html>

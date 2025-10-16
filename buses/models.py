@@ -111,3 +111,9 @@ class BusSchedule(models.Model):
         unique_together = ['bus', 'route', 'shift', 'departure_time']
 
 
+class Bus:
+    pass
+
+
+class Registration:
+    pass
