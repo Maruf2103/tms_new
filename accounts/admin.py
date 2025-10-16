@@ -1,11 +1,15 @@
-from django.contrib import admin
+
 
 # Register your models here.
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Profile
 
-class ProfileInline(admin.StackedInline):
+#from TMS.accounts.admin import ProfileInline
+from TMS.accounts.models import Profile
+from .models import User
+from .models import User,Profile
+
+class Profile(admin.StackedInline):
     model = Profile
     can_delete = False
     verbose_name_plural = 'Profile'
@@ -24,4 +28,4 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ('username', 'email', 'first_name', 'last_name')
 
 admin.site.register(User, UserAdmin)
-admin.site.register(Profile)
+#admin.site.register(Profile)
