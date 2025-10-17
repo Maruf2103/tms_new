@@ -5,8 +5,12 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 
-class ProfileInline:
-    pass
+from django.contrib import admin
+from .models import Profile
+
+class ProfileInline(admin.StackedInline):   # ✅ Must inherit from InlineModelAdmin subclass
+    model = Profile
+
 
 
 from accounts.admin import ProfileInline
