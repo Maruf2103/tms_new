@@ -1,0 +1,20 @@
+<h2>Make Payment for Bus {{ bus.bus_number }}</h2>
+<p>Amount: BDT {{ amount }}</p>
+
+<form method="post">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label>{{ form.card_number.label }}</label>
+    {{ form.card_number }}
+  </div>
+  <div class="mb-3">
+    <label>Expiry Date</label>
+    {{ form.expiry_month }} / {{ form.expiry_year }}
+  </div>
+  <div class="mb-3">
+    <label>{{ form.cvv.label }}</label>
+    {{ form.cvv }}
+  </div>
+  <button type="submit" class="btn btn-success">Pay Now</button>
+  <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+</form>
