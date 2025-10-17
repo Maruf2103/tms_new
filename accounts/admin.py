@@ -4,9 +4,15 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-#from TMS.accounts.admin import ProfileInline
-from TMS.accounts.models import Profile
-from .models import User
+
+class ProfileInline:
+    pass
+
+
+from accounts.admin import ProfileInline
+
+from accounts.models import Profile
+
 from .models import User,Profile
 
 class Profile(admin.StackedInline):

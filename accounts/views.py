@@ -1,34 +1,35 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib import messages
+from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
+from .forms import UserRegistrationForm, UserProfileForm
+from .models import UserProfile
 
 
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
-
-            # Import inside function to avoid conflicts
-            from django.contrib.auth import login, authenticate
-
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=password)
-
-            if user is not None:
-                login(request, user)
-                messages.success(request, f'Account created successfully! Welcome {username}!')
-                return redirect('dashboard')
-        else:
-            messages.error(request, 'Please correct the errors below.')
+            login(request, user)
+            return redirect('home')
     else:
-        form = UserCreationForm()
-
+        form = UserRegistrationForm()
     return render(request, 'accounts/register.html', {'form': form})
 
 
 @login_required
-def dashboard(request):
-    return render(request, 'accounts/dashboard.html')
+def profile(request):
+    try:
+        profile = request.user.userprofile
+    except UserProfile.DoesNotExist:
+        profile = UserProfile.objects.create(user=request.user)
+
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')
+    else:
+        form = UserProfileForm(instance=profile)
+
+    return render(request, 'accounts/profile.html', {'form': form})

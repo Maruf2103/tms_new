@@ -26,9 +26,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     #'crispy_forms',
     #'crispy_bootstrap4',
-    #'TMS.accounts',
+
     'buses',
-    'tracking',
+    #'tracking',
     'accounts',
     #'registrations',
 ]
@@ -68,7 +68,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'uap_tms_db',
-        'USER': 'root_user',  # or 'root' if using root
+        'USER': 'root',  # or 'root' if using root
         'PASSWORD': 'root123',
         'HOST': 'localhost',
         'PORT': '3306',
@@ -115,3 +115,5 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'home'
+
+AUTH_USER_MODEL = 'accounts.User'
