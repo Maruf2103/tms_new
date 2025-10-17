@@ -54,35 +54,3 @@ class Registration(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.schedule}"
-class Registration(models.Model):
-
-    STATUS_CHOICES = (
-
-        ('pending', 'Pending'),
-
-        ('approved', 'Approved'),
-
-        ('rejected', 'Rejected'),
-
-    )
-
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-
-    schedule = models.ForeignKey(BusSchedule, on_delete=models.CASCADE)
-
-    registration_date = models.DateTimeField(auto_now_add=True)
-
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-
-    
-
-    class Meta:
-
-        unique_together = ['user', 'schedule']
-
-    
-
-    def __str__(self):
-
-        return f"{self.user.username} - {self.schedule}"
-
