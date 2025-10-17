@@ -19,10 +19,7 @@ def register(request):
 
 @login_required
 def profile(request):
-    try:
-        profile = request.user.userprofile
-    except UserProfile.DoesNotExist:
-        profile = UserProfile.objects.create(user=request.user)
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=profile)

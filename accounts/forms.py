@@ -1,6 +1,17 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import AbstractUser
+from django.db import models
 from .models import User, UserProfile
+
+
+class User(AbstractUser):
+    USER_TYPE_CHOICES = [
+        ('admin', 'Admin'),
+        ('staff', 'Staff'),
+        ('customer', 'Customer'),
+    ]
+    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='customer')
 
 
 class UserRegistrationForm(UserCreationForm):

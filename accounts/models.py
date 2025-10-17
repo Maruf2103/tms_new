@@ -30,9 +30,6 @@ class UserProfile(models.Model):
 
     class Meta:
         app_label = 'accounts'
+
     def __str__(self):
         return f"{self.user.username}'s Profile"
-
-
-class Profile:
-    pass
