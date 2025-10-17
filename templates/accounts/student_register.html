@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% extends 'base.html' %}
+
+{% block title %}Student Sign Up - UAP-TMS{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <h3 class="card-title text-center mb-3">Join UAP Transport</h3>
+                    <p class="text-center text-muted small mb-4">Student account for UAP students</p>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" class="row g-3">
+                        {% csrf_token %}
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            <input class="form-control" type="text" name="username" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Student ID</label>
+                            <input class="form-control" type="text" name="student_id" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Email</label>
+                            <input class="form-control" type="email" name="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone (optional)</label>
+                            <input class="form-control" type="text" name="phone">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Password</label>
+                            <input class="form-control" type="password" name="password1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Confirm Password</label>
+                            <input class="form-control" type="password" name="password2" required>
+                        </div>
+
+                        <div class="col-12">
+                            <button class="btn btn-primary btn-lg w-100" type="submit">Create Student Account</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <a href="{% url 'login' %}">Already registered? Sign in</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+</body>
+</html>

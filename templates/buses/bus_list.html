@@ -38,12 +38,14 @@
             <div class="card-body">
                 <h5 class="card-title">{{ bus.bus_number }}</h5>
                 <p class="card-text">{{ bus.bus_name }}</p>
-                <p class="mb-1"><strong>Type:</strong> {{ bus.bus_type }}</p>
                 <p class="mb-1"><strong>Capacity:</strong> {{ bus.capacity }} seats</p>
+                <p class="mb-1"><strong>Driver:</strong> {{ bus.driver_name }}</p>
                 <p class="mb-3">
-                    <span class="badge bg-{{ bus.status|yesno:'success,danger' }}">
-                        {{ bus.get_status_display }}
-                    </span>
+                    {% if bus.is_available %}
+                        <span class="badge bg-success">Available</span>
+                    {% else %}
+                        <span class="badge bg-danger">Unavailable</span>
+                    {% endif %}
                 </p>
                 <a href="{% url 'buses:bus_detail' bus.id %}" class="btn btn-primary btn-sm">
                     <i class="fas fa-info-circle"></i> View Details

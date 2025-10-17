@@ -5,7 +5,7 @@
     <title>Title</title>
 </head>
 <body>
-{% extends 'base/base.html' %}
+ {% extends 'base/base.html' %}
 
 {% block title %}Manage Buses - UAP TMS{% endblock %}
 
@@ -33,9 +33,9 @@
                         <th>Bus Number</th>
                         <th>Bus Name</th>
                         <th>Capacity</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Plate</th>
+                        <th>Driver</th>
+                        <th>Available</th>
+                        <th>Actions</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -45,13 +45,14 @@
                         <td>{{ bus.bus_number }}</td>
                         <td>{{ bus.bus_name }}</td>
                         <td>{{ bus.capacity }}</td>
-                        <td>{{ bus.bus_type }}</td>
+                        <td>{{ bus.driver_name }}</td>
                         <td>
-                            <span class="badge bg-{% if bus.status == 'active' %}success{% elif bus.status == 'maintenance' %}warning{% else %}danger{% endif %}">
-                                {{ bus.get_status_display }}
-                            </span>
+                            {% if bus.is_available %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-danger">No</span>
+                            {% endif %}
                         </td>
-                        <td>{{ bus.registration_plate }}</td>
                         <td>
                             <a href="{% url 'buses:edit_bus' bus.id %}" class="btn btn-sm btn-warning">
                                 <i class="fas fa-edit"></i>
