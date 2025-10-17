@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Payment - UAP TMS{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+        <h2 style="color: #2c3e50; margin-bottom: 1rem; text-align: center;">?? Payment</h2>
+        
+        {% if pending_payments %}
+            <div style="margin-bottom: 2rem;">
+                <h3 style="color: #2c3e50; margin-bottom: 1rem;">Pending Payments</h3>
+                {% for payment in pending_payments %}
+                <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">{{ payment.bus.bus_number }} - {{ payment.bus.route }}</h4>
+                    <p style="color: #666; margin-bottom: 0.25rem;">?? Travel Date: {{ payment.travel_date }}</p>
+                    <p style="color: #666; margin-bottom: 0.25rem;">?? Amount: ?50.00</p>
+                    
+                    <form method="post" action="{% url 'process_payment' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="registration_id" value="{{ payment.id }}">
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Payment Method</label>
+                            <select name="payment_method" required style="width: 100%; padding: 10px; border: 2px solid #e9ecef; border-radius: 5px;">
+                                <option value="">Select Method</option>
+                                <option value="bkash">bKash</option>
+                                <option value="nagad">Nagad</option>
+                                <option value="rocket">Rocket</option>
+                                <option value="card">Credit/Debit Card</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success" style="width: 100%;">Pay ?50.00</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">?</div>
+                <h3 style="color: #27ae60;">No Pending Payments</h3>
+                <p style="color: #7f8c8d;">You have no pending bus fare payments.</p>
+            </div>
+        {% endif %}
+        
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="{% url 'dashboard' %}" class="btn">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

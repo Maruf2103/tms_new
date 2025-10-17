@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - UAP TMS{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+        <h2 style="color: #2c3e50; margin-bottom: 2rem; text-align: center;">?? User Profile</h2>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div>
+                <h4 style="color: #2c3e50; margin-bottom: 1rem;">Personal Information</h4>
+                <div style="margin-bottom: 1rem;">
+                    <strong>Full Name:</strong><br>
+                    {{ user.first_name }} {{ user.last_name }}
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <strong>Username:</strong><br>
+                    {{ user.username }}
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <strong>Email:</strong><br>
+                    {{ user.email }}
+                </div>
+            </div>
+            
+            <div>
+                <h4 style="color: #2c3e50; margin-bottom: 1rem;">Account Details</h4>
+                <div style="margin-bottom: 1rem;">
+                    <strong>User Type:</strong><br>
+                    {{ user_profile.user_type|title }}
+                </div>
+                {% if user_profile.phone %}
+                <div style="margin-bottom: 1rem;">
+                    <strong>Phone:</strong><br>
+                    {{ user_profile.phone }}
+                </div>
+                {% endif %}
+                {% if user_profile.department %}
+                <div style="margin-bottom: 1rem;">
+                    <strong>Department:</strong><br>
+                    {{ user_profile.department }}
+                </div>
+                {% endif %}
+                {% if user_profile.student_id %}
+                <div style="margin-bottom: 1rem;">
+                    <strong>Student ID:</strong><br>
+                    {{ user_profile.student_id }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="{% url 'dashboard' %}" class="btn">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
