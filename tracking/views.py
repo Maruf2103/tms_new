@@ -4,12 +4,12 @@ from django.contrib import messages
 from django.http import JsonResponse
 from .models import BusLocation, BusStatus, Notification
 from .forms import BusLocationForm, BusStatusForm, NotificationForm
-from buses.models import Buses
+from buses.models import Bus
 
 @login_required
 def live_tracking(request):
     """Display live tracking map"""
-    buses = Buses.objects.filter(status='active')
+    buses = Bus.objects.filter(status='active')
     
     # Get latest location for each bus
     bus_locations = []
@@ -32,7 +32,7 @@ def live_tracking(request):
 @login_required
 def bus_tracking_detail(request, bus_id):
     """Display detailed tracking for a specific bus"""
-    bus = get_object_or_404(Buses, id=bus_id)
+    bus = get_object_or_404(Bus, id=bus_id)
     
     try:
         current_location = BusLocation.objects.filter(bus=bus, is_active=True).latest()
@@ -59,7 +59,7 @@ def bus_tracking_detail(request, bus_id):
 @login_required
 def get_bus_location_api(request, bus_id):
     """API endpoint to get bus location (for AJAX updates)"""
-    bus = get_object_or_404(Buses, id=bus_id)
+    bus = get_object_or_404(Bus, id=bus_id)
     
     try:
         location = BusLocation.objects.filter(bus=bus, is_active=True).latest()
@@ -87,7 +87,7 @@ def manage_tracking(request):
         messages.error(request, 'Access denied. Authority access required.')
         return redirect('accounts:dashboard')
     
-    buses = Buses.objects.filter(status='active')
+    buses = Bus.objects.filter(status='active')
     bus_statuses = BusStatus.objects.all()
     recent_locations = BusLocation.objects.filter(is_active=True).select_related('bus')[:20]
     
@@ -131,7 +131,7 @@ def update_status(request, bus_id=None):
         return redirect('accounts:dashboard')
     
     if bus_id:
-        bus = get_object_or_404(Buses, id=bus_id)
+        bus = get_object_or_404(Bus, id=bus_id)
         bus_status, created = BusStatus.objects.get_or_create(bus=bus)
     else:
         bus_status = None
