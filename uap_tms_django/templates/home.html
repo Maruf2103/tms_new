@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UAP TMS - Transport Management System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .header { background: #0066cc; color: white; padding: 20px; border-radius: 5px; }
+        .nav { margin: 20px 0; }
+        .nav a { margin-right: 15px; text-decoration: none; color: #0066cc; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>?? UAP Transport Management System</h1>
+        <p>Smart, Efficient, and Reliable Campus Transportation</p>
+    </div>
+    
+    <div class="nav">
+        <a href="{% url 'signup' %}">Sign Up</a>
+        <a href="{% url 'login' %}">Login</a>
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+    </div>
+    
+    <div class="content">
+        <h2>Welcome to UAP TMS</h2>
+        <p>Live bus tracking, online payments, and smart routing for University of Asia Pacific.</p>
+        
+        <div style="margin-top: 30px;">
+            <h3>Features:</h3>
+            <ul>
+                <li>?? Live Bus Tracking</li>
+                <li>?? Online Payment System</li>
+                <li>?? AI-Powered Route Optimization</li>
+                <li>?? User Profiles & Management</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
