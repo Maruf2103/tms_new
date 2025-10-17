@@ -178,3 +178,6 @@ def notifications_list(request):
         'notifications': notifications,
     }
     return render(request, 'tracking/notifications_list.html', context)
+
+def live_tracking_view(request):
+    return render(request, 'tracking/live_tracking.html')

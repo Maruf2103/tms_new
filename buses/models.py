@@ -23,7 +23,7 @@ class Route(models.Model):
     start_point = models.CharField(max_length=200)
     end_point = models.CharField(max_length=200)
     stops = models.TextField(help_text="Comma separated list of stops")
-    distance = models.FloatField(help_text="Distance in km")
+    # distance = models.FloatField()  # TEMPORARILY COMMENTED OUT
     estimated_time = models.IntegerField(help_text="Estimated time in minutes")
 
     def __str__(self):
@@ -93,3 +93,4 @@ class Registration(models.Model):
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
+
