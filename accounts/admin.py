@@ -1,17 +1,14 @@
-from django.contrib import admin
+﻿from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth import get_user_model
-from django.apps import apps
+from .models import User
 
-User = get_user_model()
-
-if apps.is_installed('accounts.Profile'):
-    from .models import Profile
-
-    class UserAdmin(BaseUserAdmin):
-        inlines = []
-
-    admin.site.register(User, UserAdmin)
-else:
-    admin.site.register(User)
-    print('Note: Using basic User admin - Profile model not available')
+@admin.register(User)
+class UserAdmin(BaseUserAdmin):
+    fieldsets = BaseUserAdmin.fieldsets + (
+        ('Custom Information', {'fields': ('user_type',)}),
+    )
+    add_fieldsets = BaseUserAdmin.add_fieldsets + (
+        ('Custom Information', {'fields': ('user_type',)}),
+    )
+    list_display = ('username', 'email', 'user_type', 'is_staff')
+    list_filter = ('user_type', 'is_staff', 'is_superuser')
