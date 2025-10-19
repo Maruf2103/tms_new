@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+
+
 app_name = 'tracking'
 
 urlpatterns = [
@@ -16,3 +18,21 @@ urlpatterns = [
     path('update-status/<int:bus_id>/', views.update_status, name='update_status_bus'),
     path('create-notification/', views.create_notification, name='create_notification'),
 ]
+
+
+from django.urls import path
+from .views import UpdateLocationView
+
+urlpatterns = [
+    path('update-location/', UpdateLocationView.as_view(), name='update_location'),
+]
+
+
+# tracking/urls.py
+from .views import live_map, UpdateLocationView
+
+urlpatterns = [
+    path('live/', live_map, name='live_map'),
+    path('update-location/', UpdateLocationView.as_view(), name='update_location'),
+]
+

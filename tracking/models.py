@@ -63,3 +63,15 @@ class Notification(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+
+
+
+class Vehicle(models.Model):
+    vehicle_id = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=100)
+    latitude = models.FloatField(default=0.0)
+    longitude = models.FloatField(default=0.0)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
