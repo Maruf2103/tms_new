@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Bus Tracking - UAP TMS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #f5f6fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 20px 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav h1 { font-size: 1.8em; }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+        .nav-links a:hover { background: rgba(255,255,255,0.1); }
+        
+        .tracking-content {
+            padding: 30px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .bus-list {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        .bus-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .map-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .map-placeholder {
+            height: 400px;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border-radius: 8px;
+            flex-direction: column;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="nav">
+                <h1>?? Live Bus Tracking</h1>
+                <div class="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/dashboard">Dashboard</a>
+                    <a href="/payment">Payment</a>
+                    <a href="/logout">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="tracking-content">
+            <div class="bus-list">
+                <h2>Active Buses</h2>
+                <div id="busListContainer">
+                    <p>Loading bus locations...</p>
+                </div>
+                <button class="btn" onclick="simulateMovement()">Simulate Bus Movement</button>
+            </div>
+            
+            <div class="map-container">
+                <h2>Live Map View</h2>
+                <div class="map-placeholder">
+                    <h3>?? Google Maps Integration</h3>
+                    <p>Real-time bus locations would be displayed here</p>
+                    <p>UAP Coordinates: 23.7806° N, 90.4193° E</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateBusLocations() {
+            fetch('/ext/api/bus/locations')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('busListContainer');
+                    if (data.locations && Object.keys(data.locations).length > 0) {
+                        container.innerHTML = '';
+                        Object.entries(data.locations).forEach(([busId, busData]) => {
+                            const busCard = document.createElement('div');
+                            busCard.className = 'bus-card';
+                            busCard.innerHTML = `
+                                <h4>?? Bus ${busId}</h4>
+                                <p><strong>Location:</strong> ${busData.latitude.toFixed(4)}, ${busData.longitude.toFixed(4)}</p>
+                                <p><strong>Speed:</strong> ${busData.speed}</p>
+                                <p><strong>Status:</strong> ${busData.status}</p>
+                                <p><strong>Last Update:</strong> ${busData.last_updated}</p>
+                            `;
+                            container.appendChild(busCard);
+                        });
+                    } else {
+                        container.innerHTML = '<p>No active buses found</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('busListContainer').innerHTML = '<p>Error loading bus locations</p>';
+                });
+        }
+
+        function simulateMovement() {
+            // Simulate movement for demo buses
+            fetch('/ext/api/bus/1/simulate-move', { method: 'POST' });
+            fetch('/ext/api/bus/2/simulate-move', { method: 'POST' });
+            fetch('/ext/api/bus/3/simulate-move', { method: 'POST' });
+            
+            setTimeout(updateBusLocations, 1000);
+            alert('Bus movement simulated!');
+        }
+
+        // Update every 10 seconds
+        setInterval(updateBusLocations, 10000);
+        updateBusLocations(); // Initial load
+    </script>
+</body>
+</html>

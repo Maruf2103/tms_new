@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - UAP TMS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        .login-header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        .btn {
+            width: 100%;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .signup-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        .signup-link a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .flash-success {
+            background: #d5f4e6;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .flash-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .demo-accounts {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            font-size: 0.9em;
+        }
+        .demo-accounts h4 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .demo-account {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>?? Welcome Back</h1>
+            <p>Login to your UAP TMS account</p>
+        </div>
+
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required placeholder="Enter your username">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
+            </div>
+            
+            <button type="submit" class="btn">Login to Account</button>
+        </form>
+
+        <div class="demo-accounts">
+            <h4>?? Demo Accounts (Click to copy)</h4>
+            <div class="demo-account" onclick="copyToClipboard('student1')">
+                <span>Student Account</span>
+                <span><strong>student1</strong> / password123</span>
+            </div>
+            <div class="demo-account" onclick="copyToClipboard('faculty1')">
+                <span>Faculty Account</span>
+                <span><strong>faculty1</strong> / password123</span>
+            </div>
+            <div class="demo-account" onclick="copyToClipboard('admin1')">
+                <span>Admin Account</span>
+                <span><strong>admin1</strong> / admin123</span>
+            </div>
+        </div>
+        
+        <div class="signup-link">
+            <p>Don't have an account? <a href="/signup">Sign up here</a></p>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/" style="color: #3498db; text-decoration: none;">? Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(username) {
+            const input = document.createElement('input');
+            input.value = username;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            alert(`Username "${username}" copied to clipboard!`);
+        }
+
+        // Auto-fill demo accounts on click
+        document.querySelectorAll('.demo-account').forEach(account => {
+            account.addEventListener('click', function() {
+                const username = this.querySelector('strong').textContent;
+                document.getElementById('username').value = username;
+                document.getElementById('password').value = username.includes('admin') ? 'admin123' : 'password123';
+            });
+        });
+    </script>
+</body>
+</html>

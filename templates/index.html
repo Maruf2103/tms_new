@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAP Transportation Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header { 
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white; 
+            padding: 50px; 
+            text-align: center; 
+        }
+        .header h1 { font-size: 3em; margin-bottom: 15px; }
+        .header p { font-size: 1.3em; opacity: 0.9; }
+        .features { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 25px; 
+            padding: 50px; 
+        }
+        .feature-card { 
+            background: #f8f9fa; 
+            padding: 35px; 
+            border-radius: 12px; 
+            text-align: center; 
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .feature-card:hover { 
+            transform: translateY(-8px); 
+            border-color: #3498db;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        .feature-icon { font-size: 3.5em; margin-bottom: 20px; }
+        .feature-card h3 { color: #2c3e50; margin-bottom: 15px; font-size: 1.4em; }
+        .feature-card p { color: #666; line-height: 1.6; }
+        .auth-buttons { 
+            text-align: center; 
+            padding: 40px; 
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+        .btn { 
+            display: inline-block; 
+            background: #3498db; 
+            color: white; 
+            padding: 18px 35px; 
+            margin: 0 12px; 
+            text-decoration: none; 
+            border-radius: 30px; 
+            font-weight: bold; 
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .btn:hover { 
+            background: #2980b9; 
+            transform: translateY(-2px);
+        }
+        .btn-success { background: #27ae60; }
+        .btn-success:hover { background: #219653; }
+        .btn-outline { 
+            background: transparent; 
+            border-color: #3498db; 
+            color: #3498db; 
+        }
+        .btn-outline:hover { 
+            background: #3498db; 
+            color: white;
+        }
+        .demo-info {
+            background: #e8f4fd;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 30px 50px;
+            text-align: center;
+        }
+        .demo-info h3 { color: #2c3e50; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>?? UAP Transportation Management System</h1>
+            <p>Smart, Efficient, and Reliable Campus Transportation</p>
+        </div>
+        
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">??</div>
+                <h3>Live Bus Tracking</h3>
+                <p>Real-time GPS tracking of all university buses with live updates and estimated arrival times</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">??</div>
+                <h3>Online Payment</h3>
+                <p>Secure digital payments with bKash, Nagad, Rocket, and credit/debit card support</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">???</div>
+                <h3>Smart Routing</h3>
+                <p>AI-powered route optimization and personalized suggestions based on your schedule</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">??</div>
+                <h3>User Management</h3>
+                <p>Complete authentication system for students, faculty, and staff with secure profiles</p>
+            </div>
+        </div>
+
+        <div class="demo-info">
+            <h3>?? Demo Accounts Available</h3>
+            <p><strong>Student:</strong> student1 / password123</p>
+            <p><strong>Faculty:</strong> faculty1 / password123</p>
+            <p><strong>Admin:</strong> admin1 / admin123</p>
+        </div>
+        
+        <div class="auth-buttons">
+            <a href="/login" class="btn">?? Login to Your Account</a>
+            <a href="/signup" class="btn btn-success">?? Create New Account</a>
+            <a href="/dashboard" class="btn btn-outline">?? View Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>
