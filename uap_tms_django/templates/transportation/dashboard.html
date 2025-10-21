@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - UAP TMS{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1 style="color: #2c3e50;">?? Dashboard</h1>
+    <p style="color: #7f8c8d;">Welcome back, {{ user.first_name }}!</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">??</div>
+        <h3>Available Buses</h3>
+        <p style="font-size: 1.5rem; color: #3498db;">{{ available_buses.count }}</p>
+    </div>
+    
+    <div style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">??</div>
+        <h3>My Registrations</h3>
+        <p style="font-size: 1.5rem; color: #27ae60;">{{ user_registrations.count }}</p>
+    </div>
+    
+    <div style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">??</div>
+        <h3>User Type</h3>
+        <p style="font-size: 1rem; color: #e74c3c; text-transform: capitalize;">{{ user_profile.user_type }}</p>
+    </div>
+</div>
+
+<div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h2 style="color: #2c3e50; margin-bottom: 1.5rem;">?? Available Buses</h2>
+    
+    {% if available_buses %}
+        <div style="display: grid; gap: 1rem;">
+            {% for bus in available_buses %}
+            <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">{{ bus.bus_number }} - {{ bus.route }}</h4>
+                    <p style="color: #666; margin-bottom: 0.25rem;">?? Departure: {{ bus.departure_time }}</p>
+                    <p style="color: #666; margin-bottom: 0.25rem;">?? Available Seats: {{ bus.available_seats }}/{{ bus.capacity }}</p>
+                    <p style="color: #666;">????? Driver: {{ bus.driver_name }}</p>
+                </div>
+                <a href="{% url 'register_bus' bus.id %}" class="btn btn-success">Register</a>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="color: #7f8c8d; text-align: center;">No buses available at the moment.</p>
+    {% endif %}
+</div>
+
+{% if user_registrations %}
+<div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+    <h2 style="color: #2c3e50; margin-bottom: 1.5rem;">?? My Bus Registrations</h2>
+    
+    <div style="display: grid; gap: 1rem;">
+        {% for registration in user_registrations %}
+        <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 1.5rem;">
+            <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">{{ registration.bus.bus_number }} - {{ registration.bus.route }}</h4>
+            <p style="color: #666; margin-bottom: 0.25rem;">?? Travel Date: {{ registration.travel_date }}</p>
+            <p style="color: #666; margin-bottom: 0.25rem;">?? Departure: {{ registration.bus.departure_time }}</p>
+            <p style="color: #666; margin-bottom: 0.25rem;">?? Status: 
+                <span style="color: {% if registration.status == 'confirmed' %}#27ae60{% else %}#e74c3c{% endif %};">
+                    {{ registration.status|title }}
+                </span>
+            </p>
+            <p style="color: #666;">?? Payment: 
+                <span style="color: {% if registration.payment_status == 'paid' %}#27ae60{% else %}#e74c3c{% endif %};">
+                    {{ registration.payment_status|title }}
+                </span>
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 2rem;">
+    <a href="{% url 'live_tracking' %}" class="btn">?? Live Tracking</a>
+    <a href="{% url 'payment' %}" class="btn">?? Make Payment</a>
+    <a href="{% url 'profile' %}" class="btn">?? View Profile</a>
+</div>
+{% endblock %}
