@@ -1,0 +1,8 @@
+<div class="alert alert-success">
+  <h3>✅ Payment Successful!</h3>
+  <p><strong>Bus:</strong> {{ payment.bus.bus_number }}</p>
+  <p><strong>Amount:</strong> BDT {{ payment.amount }}</p>
+  <p><strong>Transaction ID:</strong> {{ payment.transaction_id }}</p>
+  <p><strong>Date:</strong> {{ payment.created_at|date:"d M Y H:i" }}</p>
+  <a href="{% url 'dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
+</div>
