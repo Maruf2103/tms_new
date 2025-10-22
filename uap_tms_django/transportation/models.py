@@ -72,15 +72,3 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.transaction_id} - {self.user.user.get_full_name()}"
-# ADD TO transportation/models.py (before the last line)
-
-class Route(models.Model):
-    name = models.CharField(max_length=100)
-    start_point = models.CharField(max_length=100)
-    end_point = models.CharField(max_length=100)
-    distance = models.DecimalField(max_digits=5, decimal_places=2, help_text="Distance in kilometers")
-    estimated_time = models.IntegerField(help_text="Estimated time in minutes")
-    stops = models.TextField(help_text="Comma separated bus stops")
-
-    def __str__(self):
-        return f"{self.name} ({self.start_point} to {self.end_point})"

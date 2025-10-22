@@ -1,4 +1,4 @@
-# transportation/admin.py
+# transportation/admin.py - Simple version without Route model
 from django.contrib import admin
 from .models import UserProfile, Bus, BusRegistration, Payment
 
@@ -21,8 +21,3 @@ class BusRegistrationAdmin(admin.ModelAdmin):
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ['user', 'amount', 'payment_method', 'status', 'payment_date']
     list_filter = ['status', 'payment_method']
-# ADD TO transportation/admin.py (after the imports)
-from .models import UserProfile, Bus, BusRegistration, Payment, Route
-
-# ADD THIS LINE after the other admin registrations
-admin.site.register(Route)

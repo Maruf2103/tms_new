@@ -273,3 +273,42 @@ def home(request):
         ]
     }
     return render(request, 'transportation/index.html', context)
+# ADD THIS TO transportation/views.py (replace home function if exists)
+
+def home(request):
+    """Home page with features"""
+    context = {
+        'features': [
+            {
+                'icon': '??',
+                'title': 'Live Bus Tracking',
+                'description': 'Real-time GPS tracking of all university buses'
+            },
+            {
+                'icon': '??', 
+                'title': 'Online Payment',
+                'description': 'Secure digital payments with multiple methods'
+            },
+            {
+                'icon': '???',
+                'title': 'Smart Routing', 
+                'description': 'AI-powered route optimization and suggestions'
+            },
+            {
+                'icon': '??',
+                'title': 'User Management',
+                'description': 'Complete authentication system for all users'
+            },
+            {
+                'icon': '??',
+                'title': 'Real-time Analytics',
+                'description': 'Comprehensive dashboard with live statistics'
+            },
+            {
+                'icon': '??',
+                'title': 'Instant Notifications',
+                'description': 'Real-time alerts and updates'
+            }
+        ]
+    }
+    return render(request, 'transportation/index.html', context)
