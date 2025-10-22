@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from .models import *
 from datetime import datetime, date
-import json
+import random
 
 def home(request):
     """Home page"""
@@ -88,10 +88,13 @@ def dashboard(request):
     try:
         user_profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
-        user_profile = None
+        # Create profile if it doesn't exist
+        user_profile = UserProfile.objects.create(
+            user=request.user,
+            user_type='student'
+        )
     
     # Get available buses for today
-    today = date.today()
     available_buses = Bus.objects.filter(
         status='active',
         available_seats__gt=0
@@ -100,13 +103,12 @@ def dashboard(request):
     # Get user's registrations
     user_registrations = BusRegistration.objects.filter(
         user=user_profile
-    ).select_related('bus').order_by('-registration_date') if user_profile else []
+    ).select_related('bus').order_by('-registration_date')
     
     context = {
         'user_profile': user_profile,
         'available_buses': available_buses,
         'user_registrations': user_registrations,
-        'today': today,
     }
     return render(request, 'transportation/dashboard.html', context)
 
@@ -118,15 +120,13 @@ def register_bus(request, bus_id):
         bus = Bus.objects.get(id=bus_id)
         
         # Check if already registered for today
-        today = date.today()
         existing_registration = BusRegistration.objects.filter(
             user=user_profile,
             bus=bus,
-            travel_date=today
         ).exists()
         
         if existing_registration:
-            messages.warning(request, 'You are already registered for this bus today!')
+            messages.warning(request, 'You are already registered for this bus!')
         elif bus.available_seats <= 0:
             messages.error(request, 'No available seats on this bus!')
         else:
@@ -134,7 +134,6 @@ def register_bus(request, bus_id):
             BusRegistration.objects.create(
                 user=user_profile,
                 bus=bus,
-                travel_date=today,
                 status='confirmed'
             )
             
@@ -167,21 +166,8 @@ def live_tracking(request):
     """Live bus tracking"""
     buses = Bus.objects.filter(status='active')
     
-    # Simulate bus locations (in real app, this would come from GPS)
-    bus_locations = []
-    for bus in buses:
-        bus_locations.append({
-            'bus_number': bus.bus_number,
-            'route': bus.route,
-            'driver': bus.driver_name,
-            'lat': 23.7806 + (int(bus.id) * 0.001),  # Simulated coordinates
-            'lng': 90.4193 + (int(bus.id) * 0.001),
-            'status': 'moving'
-        })
-    
     context = {
         'buses': buses,
-        'bus_locations': json.dumps(bus_locations),
     }
     return render(request, 'transportation/live_tracking.html', context)
 
@@ -217,7 +203,7 @@ def process_payment(request):
                 user=registration.user,
                 amount=50.00,  # Fixed bus fare
                 payment_method=payment_method,
-                transaction_id=f"TXN{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                transaction_id=f"TXN{datetime.now().strftime('%Y%m%d%H%M%S')}{random.randint(100,999)}",
                 status='success',
                 bus_registration=registration
             )
@@ -248,3 +234,42 @@ def api_status(request):
         "version": "2.0",
         "timestamp": datetime.now().isoformat(),
     })
+# ADD THIS TO transportation/views.py (replace home function if exists)
+
+def home(request):
+    """Home page with features"""
+    context = {
+        'features': [
+            {
+                'icon': '??',
+                'title': 'Live Bus Tracking',
+                'description': 'Real-time GPS tracking of all university buses'
+            },
+            {
+                'icon': '??', 
+                'title': 'Online Payment',
+                'description': 'Secure digital payments with multiple methods'
+            },
+            {
+                'icon': '???',
+                'title': 'Smart Routing', 
+                'description': 'AI-powered route optimization and suggestions'
+            },
+            {
+                'icon': '??',
+                'title': 'User Management',
+                'description': 'Complete authentication system for all users'
+            },
+            {
+                'icon': '??',
+                'title': 'Real-time Analytics',
+                'description': 'Comprehensive dashboard with live statistics'
+            },
+            {
+                'icon': '??',
+                'title': 'Instant Notifications',
+                'description': 'Real-time alerts and updates'
+            }
+        ]
+    }
+    return render(request, 'transportation/index.html', context)
