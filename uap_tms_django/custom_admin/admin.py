@@ -1,2 +1,3 @@
 # custom_admin/admin.py
-# Custom admin app doesn't need models, just views
+# This app uses custom views instead of Django admin
+# No models needed here

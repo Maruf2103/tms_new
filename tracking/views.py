@@ -6,6 +6,9 @@ from .models import BusLocation, BusStatus, Notification
 from .forms import BusLocationForm, BusStatusForm, NotificationForm
 from buses.models import Bus
 
+
+
+
 @login_required
 def live_tracking(request):
     """Display live tracking map"""
@@ -177,7 +180,51 @@ def notifications_list(request):
     context = {
         'notifications': notifications,
     }
+
     return render(request, 'tracking/notifications_list.html', context)
 
-def live_tracking_view(request):
-    return render(request, 'tracking/live_tracking.html')
+
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views import View
+from .models import Vehicle
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+import json
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UpdateLocationView(View):
+    def post(self, request):
+        vehicle_id = request.POST.get('vehicle_id')
+        lat = float(request.POST.get('latitude'))
+        lng = float(request.POST.get('longitude'))
+
+        vehicle, created = Vehicle.objects.update_or_create(
+            vehicle_id=vehicle_id,
+            defaults={'latitude': lat, 'longitude': lng}
+        )
+
+        # Broadcast update to WebSocket group
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "tracking",
+            {
+                "type": "send_location_update",
+                "data": {
+                    "vehicle_id": vehicle.vehicle_id,
+                    "name": vehicle.name,
+                    "latitude": lat,
+                    "longitude": lng,
+                }
+            }
+        )
+        return JsonResponse({"status": "success"})
+
+from django.shortcuts import render
+
+def live_map(request):
+    return render(request, 'tracking/live_map.html')

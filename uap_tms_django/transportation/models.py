@@ -24,27 +24,15 @@ class UserProfile(models.Model):
 class Bus(models.Model):
     bus_number = models.CharField(max_length=20, unique=True)
     route = models.CharField(max_length=200)
-    departure_time = models.TimeField()
+    departure_time = models.CharField(max_length=50)  # Using CharField for simplicity
     capacity = models.IntegerField(default=40, validators=[MinValueValidator(1), MaxValueValidator(100)])
     available_seats = models.IntegerField(default=40)
     driver_name = models.CharField(max_length=100)
     driver_phone = models.CharField(max_length=15)
-    current_location = models.CharField(max_length=100, blank=True, null=True)
     status = models.CharField(max_length=20, choices=[('active', 'Active'), ('maintenance', 'Maintenance')], default='active')
     
     def __str__(self):
         return f"{self.bus_number} - {self.route}"
-
-class Route(models.Model):
-    name = models.CharField(max_length=100)
-    start_point = models.CharField(max_length=100)
-    end_point = models.CharField(max_length=100)
-    distance = models.DecimalField(max_digits=5, decimal_places=2, help_text="Distance in kilometers")
-    estimated_time = models.IntegerField(help_text="Estimated time in minutes")
-    stops = models.TextField(help_text="Comma separated bus stops")
-
-    def __str__(self):
-        return f"{self.name} ({self.start_point} to {self.end_point})"
 
 class BusRegistration(models.Model):
     STATUS_CHOICES = [
@@ -62,11 +50,10 @@ class BusRegistration(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     bus = models.ForeignKey(Bus, on_delete=models.CASCADE)
     registration_date = models.DateTimeField(auto_now_add=True)
-    travel_date = models.DateField()
+    travel_date = models.DateField(auto_now_add=True)  # Using auto_now_add for simplicity
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='pending')
     payment_method = models.CharField(max_length=50, blank=True, null=True)
-    transaction_id = models.CharField(max_length=100, blank=True, null=True)
     
     class Meta:
         unique_together = ['user', 'bus', 'travel_date']
@@ -85,13 +72,15 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.transaction_id} - {self.user.user.get_full_name()}"
+# ADD TO transportation/models.py (before the last line)
 
-class BusLocation(models.Model):
-    bus = models.ForeignKey(Bus, on_delete=models.CASCADE)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    speed = models.DecimalField(max_digits=5, decimal_places=2, help_text="Speed in km/h", null=True, blank=True)
+class Route(models.Model):
+    name = models.CharField(max_length=100)
+    start_point = models.CharField(max_length=100)
+    end_point = models.CharField(max_length=100)
+    distance = models.DecimalField(max_digits=5, decimal_places=2, help_text="Distance in kilometers")
+    estimated_time = models.IntegerField(help_text="Estimated time in minutes")
+    stops = models.TextField(help_text="Comma separated bus stops")
 
     def __str__(self):
-        return f"{self.bus.bus_number} Location"
+        return f"{self.name} ({self.start_point} to {self.end_point})"

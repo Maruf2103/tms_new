@@ -58,7 +58,7 @@
         {% for registration in user_registrations %}
         <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 1.5rem;">
             <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">{{ registration.bus.bus_number }} - {{ registration.bus.route }}</h4>
-            <p style="color: #666; margin-bottom: 0.25rem;">?? Travel Date: {{ registration.travel_date }}</p>
+            <p style="color: #666; margin-bottom: 0.25rem;">?? Registration Date: {{ registration.registration_date }}</p>
             <p style="color: #666; margin-bottom: 0.25rem;">?? Departure: {{ registration.bus.departure_time }}</p>
             <p style="color: #666; margin-bottom: 0.25rem;">?? Status: 
                 <span style="color: {% if registration.status == 'confirmed' %}#27ae60{% else %}#e74c3c{% endif %};">

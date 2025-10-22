@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - UAP TMS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #f5f6fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 20px 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav h1 { font-size: 1.8em; }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+        .nav-links a:hover { background: rgba(255,255,255,0.1); }
+        
+        .payment-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin: 30px 0;
+        }
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .method-card {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .method-card:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+        .method-card.selected {
+            border-color: #27ae60;
+            background: #d5f4e6;
+        }
+        .method-icon { font-size: 2em; margin-bottom: 10px; }
+        .payment-form { margin-top: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+        }
+        .btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            width: 100%;
+        }
+        .btn:hover { background: #219653; }
+        .transaction-result {
+            background: #d5f4e6;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="nav">
+                <h1>?? Payment System</h1>
+                <div class="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/dashboard">Dashboard</a>
+                    <a href="/live-tracking">Live Tracking</a>
+                    <a href="/logout">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="payment-content">
+            <h2>Bus Fare Payment</h2>
+            <p>Amount: <strong>? 50.00</strong></p>
+            <p>Route: Mirpur to UAP Campus</p>
+            
+            <h3>Select Payment Method</h3>
+            <div class="payment-methods">
+                <div class="method-card" onclick="selectMethod('bkash')">
+                    <div class="method-icon">??</div>
+                    <div>bKash</div>
+                </div>
+                <div class="method-card" onclick="selectMethod('nagad')">
+                    <div class="method-icon">??</div>
+                    <div>Nagad</div>
+                </div>
+                <div class="method-card" onclick="selectMethod('rocket')">
+                    <div class="method-icon">??</div>
+                    <div>Rocket</div>
+                </div>
+                <div class="method-card" onclick="selectMethod('card')">
+                    <div class="method-icon">??</div>
+                    <div>Card</div>
+                </div>
+            </div>
+            
+            <div class="payment-form" id="paymentForm" style="display: none;">
+                <h3 id="formTitle">Payment Details</h3>
+                <div class="form-group">
+                    <label id="numberLabel">Mobile Number</label>
+                    <input type="text" id="accountNumber" placeholder="01XXXXXXXXX">
+                </div>
+                <div class="form-group">
+                    <label>Transaction ID</label>
+                    <input type="text" id="transactionId" placeholder="Enter transaction ID">
+                </div>
+                <button class="btn" onclick="processPayment()">Confirm Payment</button>
+            </div>
+            
+            <div class="transaction-result" id="transactionResult">
+                <h3>? Payment Successful!</h3>
+                <div id="resultDetails"></div>
+                <button class="btn" onclick="goToDashboard()" style="margin-top: 15px; background: #3498db;">
+                    Back to Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedMethod = '';
+        
+        function selectMethod(method) {
+            selectedMethod = method;
+            document.querySelectorAll('.method-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            document.getElementById('paymentForm').style.display = 'block';
+            document.getElementById('formTitle').textContent = method.toUpperCase() + ' Payment';
+        }
+        
+        function processPayment() {
+            const accountNumber = document.getElementById('accountNumber').value;
+            const transactionId = document.getElementById('transactionId').value;
+            
+            if (!accountNumber || !transactionId) {
+                alert('Please fill all fields');
+                return;
+            }
+            
+            // Simulate API call
+            fetch('/ext/api/payment/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: 1,
+                    amount: 50.00,
+                    payment_method: selectedMethod
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('paymentForm').style.display = 'none';
+                document.getElementById('transactionResult').style.display = 'block';
+                document.getElementById('resultDetails').innerHTML = `
+                    <p><strong>Transaction ID:</strong> ${data.payment.transaction_id}</p>
+                    <p><strong>Amount:</strong> ?${data.payment.amount}</p>
+                    <p><strong>Method:</strong> ${data.payment.payment_method}</p>
+                    <p><strong>Status:</strong> ${data.payment.status}</p>
+                `;
+            })
+            .catch(error => {
+                alert('Payment failed: ' + error);
+            });
+        }
+        
+        function goToDashboard() {
+            window.location.href = '/dashboard';
+        }
+    </script>
+</body>
+</html>
