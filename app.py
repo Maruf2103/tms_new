@@ -1,3 +1,18 @@
+﻿from flask import Flask, redirect
+from app.auth.routes import auth_bp  # ADD THIS IMPORT
+
+app = Flask(__name__)
+app.secret_key = 'tms-production-secret-2024'  # ADD SECRET KEY
+
+# Register blueprints
+app.register_blueprint(auth_bp)  # ADD THIS REGISTRATION
+
+# Root route - redirect to login
+@app.route('/')
+def index():
+    return redirect('/login')
+
+# Your existing routes below...
 # app.py - UAP TMS with Complete Authentication
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import sqlite3
@@ -300,3 +315,8 @@ if __name__ == '__main__':
     print("?? Dashboard: http://127.0.0.1:5000/dashboard")
     print("? Ready to use!")
     app.run(debug=True, host='127.0.0.1', port=5000)
+
+
+# Add this if not present in original
+if __name__ == '__main__':
+    app.run(debug=True)
