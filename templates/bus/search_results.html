@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Available Routes</h2>
+    <div class="card">
+        <div class="card-body">
+            <p>Route search results will be displayed here.</p>
+            <a href="{% url 'select_bus' %}" class="btn btn-primary">Select Bus</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

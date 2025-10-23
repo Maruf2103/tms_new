@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Bus Registration</h2>
+    <div class="card">
+        <div class="card-body">
+            <p>Complete your bus registration in 4 easy steps:</p>
+            <ol>
+                <li>Search for available routes</li>
+                <li>Select your preferred bus and time slot</li>
+                <li>Make payment</li>
+                <li>Receive confirmation</li>
+            </ol>
+            <a href="{% url 'search_routes' %}" class="btn btn-primary">Start Registration</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

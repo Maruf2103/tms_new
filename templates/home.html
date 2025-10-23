@@ -1,22 +1,18 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
-<div class=\"container mt-4\">
-    <div class=\"jumbotron\">
-        <h1 class=\"display-4\">Welcome to UAP Transportation System</h1>
-        <p class=\"lead\">Manage your bus schedules and transportation needs efficiently.</p>
-        <hr class=\"my-4\">
-        
-        {% if user.is_authenticated %}
-        <div class=\"alert alert-success\">
-            You are signed in as <strong>{{ user.username }}</strong>.
-            <a href=\"{% url 'dashboard' %}\" class=\"btn btn-success btn-sm\">Go to Dashboard</a>
-        </div>
-        {% else %}
-        <p>Please sign in or create an account to access the system.</p>
-        <a class=\"btn btn-primary btn-lg\" href=\"{% url 'signin' %}\" role=\"button\">Sign In</a>
-        <a class=\"btn btn-secondary btn-lg\" href=\"{% url 'signup' %}\" role=\"button\">Sign Up</a>
-        {% endif %}
+<div class="jumbotron">
+    <h1>Welcome to UAP Transportation System</h1>
+    <p>Manage your transportation needs efficiently.</p>
+    
+    {% if user.is_authenticated %}
+    <div class="alert alert-success">
+        Welcome, {{ user.username }}! <a href="{% url 'dashboard' %}" class="btn btn-success">Go to Dashboard</a>
     </div>
+    {% else %}
+    <p>Please sign in to access the system.</p>
+    <a href="{% url 'signin' %}" class="btn btn-primary">Sign In</a>
+    <a href="{% url 'signup' %}" class="btn btn-secondary">Sign Up</a>
+    {% endif %}
 </div>
 {% endblock %}

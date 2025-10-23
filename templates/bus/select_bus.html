@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Select Bus</h2>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label>Bus ID</label>
+                    <input type="text" name="bus_id" class="form-control" placeholder="e.g., UAP-001" required>
+                </div>
+                <div class="mb-3">
+                    <label>Time Slot</label>
+                    <input type="time" name="time_slot" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Select Bus</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

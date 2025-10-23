@@ -1,77 +1,31 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
-<div class=\"container mt-4\">
-    <div class=\"row justify-content-center\">
-        <div class=\"col-md-6\">
-            <div class=\"card\">
-                <div class=\"card-header bg-primary text-white\">
-                    <h4 class=\"mb-0\">Create Account</h4>
-                </div>
-                <div class=\"card-body\">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class=\"alert alert-{{ message.tags }} alert-dismissible fade show\" role=\"alert\">
-                                {{ message }}
-                                <button type=\"button\" class=\"btn-close\" data-bs-dismiss=\"alert\"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    
-                    <form method=\"POST\">
-                        {% csrf_token %}
-                        
-                        <div class=\"mb-3\">
-                            <label for=\"username\" class=\"form-label\">Username</label>
-                            <input type=\"text\" class=\"form-control\" id=\"username\" name=\"username\" required>
-                        </div>
-                        
-                        <div class=\"mb-3\">
-                            <label for=\"email\" class=\"form-label\">Email Address</label>
-                            <input type=\"email\" class=\"form-control\" id=\"email\" name=\"email\" required>
-                        </div>
-                        
-                        <div class=\"mb-3\">
-                            <label for=\"user_type\" class=\"form-label\">I am a</label>
-                            <select class=\"form-select\" id=\"user_type\" name=\"user_type\" required>
-                                <option value=\"student\">Student</option>
-                                <option value=\"faculty\">Faculty</option>
-                                <option value=\"staff\">Staff</option>
-                                <option value=\"authority\">Transport Authority</option>
-                            </select>
-                        </div>
-                        
-                        <div class=\"mb-3\">
-                            <label for=\"student_id\" class=\"form-label\">Student/Faculty ID (Optional)</label>
-                            <input type=\"text\" class=\"form-control\" id=\"student_id\" name=\"student_id\">
-                        </div>
-                        
-                        <div class=\"mb-3\">
-                            <label for=\"phone\" class=\"form-label\">Phone Number</label>
-                            <input type=\"tel\" class=\"form-control\" id=\"phone\" name=\"phone\" required>
-                        </div>
-                        
-                        <div class=\"mb-3\">
-                            <label for=\"address\" class=\"form-label\">Address</label>
-                            <textarea class=\"form-control\" id=\"address\" name=\"address\" rows=\"3\" required></textarea>
-                        </div>
-                        
-                        <div class=\"mb-3\">
-                            <label for=\"password1\" class=\"form-label\">Password</label>
-                            <input type=\"password\" class=\"form-control\" id=\"password1\" name=\"password1\" required>
-                        </div>
-                        
-                        <div class=\"mb-3\">
-                            <label for=\"password2\" class=\"form-label\">Confirm Password</label>
-                            <input type=\"password\" class=\"form-control\" id=\"password2\" name=\"password2\" required>
-                        </div>
-                        
-                        <button type=\"submit\" class=\"btn btn-primary w-100\">Create Account</button>
-                    </form>
-                    
-                    <div class=\"text-center mt-3\">
-                        <p>Already have an account? <a href=\"{% url 'signin' %}\">Sign In</a></p>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>Create Account</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label>Username</label>
+                        <input type="text" name="username" class="form-control" required>
                     </div>
+                    <div class="mb-3">
+                        <label>Password</label>
+                        <input type="password" name="password1" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Confirm Password</label>
+                        <input type="password" name="password2" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Create Account</button>
+                </form>
+                <div class="text-center mt-3">
+                    <a href="{% url 'signin' %}">Already have an account? Sign In</a>
                 </div>
             </div>
         </div>
