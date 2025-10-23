@@ -1,3 +1,2 @@
-from django.contrib import admin
-
-# Register your models here.
+# custom_admin/admin.py
+# This app uses custom views, no admin models needed
