@@ -14,7 +14,7 @@ urlpatterns = [
     path('accounts/register/', TemplateView.as_view(template_name='accounts/register.html'), name='register'),
     
     # Include app URLs but keep them commented out until we fix the import issues
-    # path('buses/', include('buses.urls')),
+    path('buses/', include('buses.urls')),
     # path('tracking/', include('tracking.urls')),
     # path('registrations/', include('registrations.urls')),
     # path('accounts/', include('accounts.urls')),
@@ -28,3 +28,4 @@ if settings.DEBUG:
         urlpatterns += [path('__debug__/', include(debug_toolbar.urls))]
     except ImportError:
         pass
+

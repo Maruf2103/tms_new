@@ -31,3 +31,17 @@ class Registration(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.schedule}"
+
+class BusSchedule(models.Model):
+    bus = models.ForeignKey(Bus, on_delete=models.CASCADE)
+    route = models.ForeignKey(Route, on_delete=models.CASCADE)
+    departure_time = models.DateTimeField()
+    arrival_time = models.DateTimeField()
+    available_seats = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return f"{self.bus.bus_number} - {self.route.name} - {self.departure_time}"
+    
+    class Meta:
+        ordering = ['departure_time']
