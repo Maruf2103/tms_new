@@ -1,15 +1,15 @@
-﻿# app.py - WORKING VERSION
+﻿# test_app.py - STANDALONE TEST
 from flask import Flask, render_template, request, redirect, session, flash
 import hashlib
 import os
 
 app = Flask(__name__)
-app.secret_key = 'tms-secret-key-2024'
+app.secret_key = 'test-secret-key-123'
 
-# Simple in-memory user storage (replace with database later)
+# Simple in-memory user storage (replace with your database)
 users = {}
 
-# ===== AUTHENTICATION ROUTES =====
+# Routes
 @app.route('/')
 def index():
     return redirect('/login')
@@ -24,13 +24,13 @@ def login():
             flash('Please fill all fields', 'error')
             return render_template('login.html')
         
-        # Hash password
+        # Simple check (replace with database)
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         
-        # Check if user exists (for demo - auto create)
+        # For demo - auto create user if not exists
         if email not in users:
             users[email] = {
-                'name': 'Demo User',
+                'name': 'Test User',
                 'password': hashed_password,
                 'email': email
             }
@@ -41,7 +41,7 @@ def login():
             flash('Login successful!', 'success')
             return redirect('/dashboard')
         else:
-            flash('Invalid email or password!', 'error')
+            flash('Invalid credentials!', 'error')
     
     return render_template('login.html')
 
@@ -80,26 +80,46 @@ def signup():
     
     return render_template('signup.html')
 
+@app.route('/dashboard')
+def dashboard():
+    if 'user_email' not in session:
+        return redirect('/login')
+    
+    return f'''
+    <html>
+    <head>
+        <title>Dashboard</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="#">TMS Dashboard</a>
+                <div class="navbar-nav ms-auto">
+                    <span class="navbar-text me-3">Welcome, {session['user_name']}</span>
+                    <a class="btn btn-outline-light btn-sm" href="/logout">Logout</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container mt-4">
+            <h1>Welcome to TMS!</h1>
+            <p>You are successfully logged in as: {session['user_email']}</p>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Transport Management System</h5>
+                    <p class="card-text">Your authentication is working perfectly!</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+
 @app.route('/logout')
 def logout():
     session.clear()
     flash('You have been logged out', 'info')
     return redirect('/login')
 
-@app.route('/dashboard')
-def dashboard():
-    if 'user_email' not in session:
-        return redirect('/login')
-    
-    return render_template('dashboard.html', 
-                         user_name=session.get('user_name'),
-                         user_email=session.get('user_email'))
-
-# ===== MAIN APPLICATION =====
 if __name__ == '__main__':
-    print("🚀 TMS Application Starting...")
-    print("📍 Login: http://localhost:5000/login")
-    print("📍 Signup: http://localhost:5000/signup")
-    print("📍 Dashboard: http://localhost:5000/dashboard")
-    print("Press CTRL+C to stop the server")
     app.run(debug=True, port=5000)

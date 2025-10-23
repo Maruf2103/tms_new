@@ -1,4 +1,4 @@
-﻿# app.py - WORKING VERSION
+﻿# fixed_app.py - WITH PROPER HOST BINDING
 from flask import Flask, render_template, request, redirect, session, flash
 import hashlib
 import os
@@ -6,10 +6,8 @@ import os
 app = Flask(__name__)
 app.secret_key = 'tms-secret-key-2024'
 
-# Simple in-memory user storage (replace with database later)
 users = {}
 
-# ===== AUTHENTICATION ROUTES =====
 @app.route('/')
 def index():
     return redirect('/login')
@@ -24,10 +22,8 @@ def login():
             flash('Please fill all fields', 'error')
             return render_template('login.html')
         
-        # Hash password
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         
-        # Check if user exists (for demo - auto create)
         if email not in users:
             users[email] = {
                 'name': 'Demo User',
@@ -65,7 +61,6 @@ def signup():
             flash('Email already registered!', 'error')
             return render_template('signup.html')
         
-        # Create user
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         users[email] = {
             'name': fullname,
@@ -95,11 +90,9 @@ def dashboard():
                          user_name=session.get('user_name'),
                          user_email=session.get('user_email'))
 
-# ===== MAIN APPLICATION =====
 if __name__ == '__main__':
     print("🚀 TMS Application Starting...")
-    print("📍 Login: http://localhost:5000/login")
-    print("📍 Signup: http://localhost:5000/signup")
-    print("📍 Dashboard: http://localhost:5000/dashboard")
-    print("Press CTRL+C to stop the server")
-    app.run(debug=True, port=5000)
+    print("📍 Access via: http://localhost:5000")
+    print("📍 Or: http://127.0.0.1:5000")
+    print("📍 Direct login: http://localhost:5000/login")
+    app.run(debug=True, host='0.0.0.0', port=5000)
