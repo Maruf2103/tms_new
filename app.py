@@ -124,13 +124,13 @@ def home():
 def signup():
     """User registration/sign up"""
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
-        user_type = request.form['user_type']
-        full_name = request.form['full_name']
-        email = request.form['email']
-        phone = request.form['phone']
+        username = request.form.get('username', '')
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        user_type = request.form.get('user_type', '')
+        full_name = request.form.get('full_name', '')
+        email = request.form.get('email', '')
+        phone = request.form.get('phone', '')
         department = request.form.get('department', '')
         student_id = request.form.get('student_id', '')
         
@@ -175,8 +175,8 @@ def signup():
 def login():
     """User login"""
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username', '')
+        password = request.form.get('password', '')
         
         conn = sqlite3.connect('uap_tms.db')
         c = conn.cursor()
@@ -319,4 +319,12 @@ if __name__ == '__main__':
 
 # Add this if not present in original
 if __name__ == '__main__':
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=False)
+if __name__ == '__main__':
+    print('🚀 UAP Transport Management System Starting...')
+    print('🌐 Home: http://127.0.0.1:5000')
+    print('🔐 Login: http://127.0.0.1:5000/login') 
+    print('📝 Sign Up: http://127.0.0.1:5000/signup')
+    print('📊 Dashboard: http://127.0.0.1:5000/dashboard')
+    print('✅ Ready to use!')
+    app.run(debug=True, host='127.0.0.1', port=5000, use_reloader=False)
