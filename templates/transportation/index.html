@@ -1,30 +1,44 @@
-﻿<!DOCTYPE html>
-<html lang=\"en\">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset=\"UTF-8\">
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
-    <title>Transport Management System</title>
-    <link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css\" rel=\"stylesheet\">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAP TMS - Home</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f0f2f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+        h1 { color: #2c3e50; }
+        .btn { display: inline-block; padding: 12px 25px; margin: 10px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; }
+        .btn-success { background: #27ae60; }
+        .demo { background: #e8f4fd; padding: 15px; border-radius: 5px; margin: 20px 0; }
+    </style>
 </head>
 <body>
-    <nav class=\"navbar navbar-expand-lg navbar-light bg-light\">
-        <div class=\"container\">
-            <a class=\"navbar-brand\" href=\"/\">TMS</a>
-            <div class=\"navbar-nav ms-auto\">
-                <a class=\"nav-link\" href=\"{% url 'login' %}\">Login</a>
-                <a class=\"nav-link\" href=\"{% url 'signup' %}\">Sign Up</a>
-            </div>
+    <div class="container">
+        <h1>?? UAP Transportation Management System</h1>
+        <p>Welcome to UAP TMS - Now Working! ??</p>
+        
+        <div style="margin: 30px 0;">
+            <h2>Quick Access Links</h2>
+            <a href="/login/" class="btn">?? LOGIN HERE</a>
+            <a href="/signup/" class="btn btn-success">?? SIGN UP HERE</a>
+            <a href="/dashboard/" class="btn">?? DASHBOARD</a>
+            <a href="/admin-panel/" class="btn">?? ADMIN PANEL</a>
         </div>
-    </nav>
-
-    <div class=\"container mt-5\">
-        <div class=\"jumbotron\">
-            <h1 class=\"display-4\">Welcome to Transport Management System</h1>
-            <p class=\"lead\">Manage your transportation needs efficiently.</p>
-            <hr class=\"my-4\">
-            <p>Get started by creating an account or logging in.</p>
-            <a class=\"btn btn-primary btn-lg\" href=\"{% url 'signup' %}\" role=\"button\">Sign Up</a>
-            <a class=\"btn btn-outline-primary btn-lg\" href=\"{% url 'login' %}\" role=\"button\">Login</a>
+        
+        <div class="demo">
+            <h3>Demo Accounts:</h3>
+            <p><strong>Admin:</strong> admin / admin123</p>
+            <p><strong>Student:</strong> student1 / password123</p>
+            <p><strong>Faculty:</strong> faculty1 / password123</p>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <h3>Direct URL Access:</h3>
+            <p><a href="/login/">http://127.0.0.1:8000/login/</a></p>
+            <p><a href="/signup/">http://127.0.0.1:8000/signup/</a></p>
+            <p><a href="/admin-panel/">http://127.0.0.1:8000/admin-panel/</a></p>
+            <p><a href="/admin/">http://127.0.0.1:8000/admin/</a></p>
         </div>
     </div>
 </body>
