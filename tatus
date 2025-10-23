@@ -1,0 +1,543 @@
+warning: in the working copy of 'app.py', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/add_dashboard_instruction.txt b/add_dashboard_instruction.txt[m
+[1mdeleted file mode 100644[m
+[1mindex d0b3f9a..0000000[m
+[1m--- a/add_dashboard_instruction.txt[m
+[1m+++ /dev/null[m
+[36m@@ -1,9 +0,0 @@[m
+[31m-﻿# Add this to your app.py or routes file[m
+[31m-@app.route('/dashboard')[m
+[31m-def dashboard():[m
+[31m-    if 'user_id' not in session:[m
+[31m-        return redirect('/login')[m
+[31m-    [m
+[31m-    return render_template('dashboard.html', [m
+[31m-                         user_name=session.get('user_name'),[m
+[31m-                         user_email=session.get('user_email'))[m
+[1mdiff --git a/app.py b/app.py[m
+[1mindex c58e911..7397e44 100644[m
+[1m--- a/app.py[m
+[1m+++ b/app.py[m
+[36m@@ -1,18 +1,68 @@[m
+[31m-﻿# app.py - CLEAN WORKING VERSION[m
+[32m+[m[32m﻿# app.py - TMS WITH SQLITE DATABASE[m
+ from flask import Flask, render_template, request, redirect, session, flash[m
+ import hashlib[m
+ import os[m
+[32m+[m[32mimport sqlite3[m
+ from datetime import datetime[m
+ [m
+ app = Flask(__name__)[m
+ app.secret_key = 'tms-secret-key-2024'[m
+ [m
+[32m+[m[32m# SQLite database configuration[m
+[32m+[m[32mDATABASE = 'tms_database.db'[m
+[32m+[m
+[32m+[m[32mdef get_db_connection():[m
+[32m+[m[32m    conn = sqlite3.connect(DATABASE)[m
+[32m+[m[32m    conn.row_factory = sqlite3.Row[m
+[32m+[m[32m    return conn[m
+[32m+[m
+[32m+[m[32mdef init_db():[m
+[32m+[m[32m    '''Initialize the database with required tables'''[m
+[32m+[m[32m    conn = get_db_connection()[m
+[32m+[m[32m    cursor = conn.cursor()[m
+[32m+[m[41m    [m
+[32m+[m[32m    # Create users table[m
+[32m+[m[32m    cursor.execute('''[m
+[32m+[m[32m        CREATE TABLE IF NOT EXISTS users ([m
+[32m+[m[32m            id INTEGER PRIMARY KEY AUTOINCREMENT,[m
+[32m+[m[32m            name TEXT NOT NULL,[m
+[32m+[m[32m            email TEXT UNIQUE NOT NULL,[m
+[32m+[m[32m            password TEXT NOT NULL,[m
+[32m+[m[32m            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP[m
+[32m+[m[32m        )[m
+[32m+[m[32m    ''')[m
+[32m+[m[41m    [m
+[32m+[m[32m    # Create vehicles table[m
+[32m+[m[32m    cursor.execute('''[m
+[32m+[m[32m        CREATE TABLE IF NOT EXISTS vehicles ([m
+[32m+[m[32m            id INTEGER PRIMARY KEY AUTOINCREMENT,[m
+[32m+[m[32m            plate_number TEXT UNIQUE NOT NULL,[m
+[32m+[m[32m            model TEXT NOT NULL,[m
+[32m+[m[32m            capacity INTEGER NOT NULL,[m
+[32m+[m[32m            status TEXT DEFAULT 'Active',[m
+[32m+[m[32m            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP[m
+[32m+[m[32m        )[m
+[32m+[m[32m    ''')[m
+[32m+[m[41m    [m
+[32m+[m[32m    # Insert sample vehicles[m
+[32m+[m[32m    cursor.execute('''[m
+[32m+[m[32m        INSERT OR IGNORE INTO vehicles (plate_number, model, capacity, status)[m[41m [m
+[32m+[m[32m        VALUES[m[41m [m
+[32m+[m[32m        ('DHK-12345', 'Toyota Hiace', 12, 'Active'),[m
+[32m+[m[32m        ('CTG-67890', 'Mitsubishi L300', 10, 'Active'),[m
+[32m+[m[32m        ('KHL-11223', 'Nissan Civilian', 15, 'Maintenance')[m
+[32m+[m[32m    ''')[m
+[32m+[m[41m    [m
+[32m+[m[32m    conn.commit()[m
+[32m+[m[32m    conn.close()[m
+[32m+[m[32m    print('✅ Database initialized with sample data')[m
+[32m+[m
+[32m+[m[32m# Initialize database[m
+[32m+[m[32minit_db()[m
+[32m+[m
+ # Ensure templates directory exists[m
+ os.makedirs('templates', exist_ok=True)[m
+ [m
+[31m-# Simple user storage (replace with database later)[m
+[31m-users = {}[m
+[31m-[m
+ # ========================[m
+ # ROUTES[m
+ # ========================[m
+[36m@@ -31,25 +81,28 @@[m [mdef login():[m
+             flash('Please fill all fields', 'error')[m
+             return render_template('login.html')[m
+         [m
+[31m-        # Hash password[m
+[31m-        hashed_password = hashlib.sha256(password.encode()).hexdigest()[m
+[31m-        [m
+[31m-        # For demo - auto create user if not exists[m
+[31m-        if email not in users:[m
+[31m-            users[email] = {[m
+[31m-                'name': 'Demo User',[m
+[31m-                'password': hashed_password,[m
+[31m-                'email': email[m
+[31m-            }[m
+[31m-        [m
+[31m-        if users[email]['password'] == hashed_password:[m
+[31m-            session['user_id'] = email[m
+[31m-            session['user_email'] = email[m
+[31m-            session['user_name'] = users[email]['name'][m
+[31m-            flash('Login successful!', 'success')[m
+[31m-            return redirect('/dashboard')[m
+[31m-        else:[m
+[31m-            flash('Invalid email or password!', 'error')[m
+[32m+[m[32m        try:[m
+[32m+[m[32m            # Hash password[m
+[32m+[m[32m            hashed_password = hashlib.sha256(password.encode()).hexdigest()[m
+[32m+[m[41m            [m
+[32m+[m[32m            conn = get_db_connection()[m
+[32m+[m[32m            user = conn.execute([m
+[32m+[m[32m                'SELECT * FROM users WHERE email = ? AND password = ?',[m[41m [m
+[32m+[m[32m                (email, hashed_password)[m
+[32m+[m[32m            ).fetchone()[m
+[32m+[m[32m            conn.close()[m
+[32m+[m[41m            [m
+[32m+[m[32m            if user:[m
+[32m+[m[32m                session['user_id'] = user['id'][m
+[32m+[m[32m                session['user_email'] = user['email'][m
+[32m+[m[32m                session['user_name'] = user['name'][m
+[32m+[m[32m                flash('Login successful!', 'success')[m
+[32m+[m[32m                return redirect('/dashboard')[m
+[32m+[m[32m            else:[m
+[32m+[m[32m                flash('Invalid email or password!', 'error')[m
+[32m+[m[41m                [m
+[32m+[m[32m        except Exception as e:[m
+[32m+[m[32m            flash(f'Login error: {str(e)}', 'error')[m
+     [m
+     return render_template('login.html')[m
+ [m
+[36m@@ -69,24 +122,39 @@[m [mdef signup():[m
+             flash('Passwords do not match!', 'error')[m
+             return render_template('signup.html')[m
+         [m
+[31m-        if email in users:[m
+[31m-            flash('Email already registered!', 'error')[m
+[31m-            return render_template('signup.html')[m
+[31m-        [m
+[31m-        # Create user[m
+[31m-        hashed_password = hashlib.sha256(password.encode()).hexdigest()[m
+[31m-        users[email] = {[m
+[31m-            'name': fullname,[m
+[31m-            'password': hashed_password,[m
+[31m-            'email': email[m
+[31m-        }[m
+[31m-        [m
+[31m-        session['user_id'] = email[m
+[31m-        session['user_email'] = email[m
+[31m-        session['user_name'] = fullname[m
+[31m-        [m
+[31m-        flash('Account created successfully!', 'success')[m
+[31m-        return redirect('/dashboard')[m
+[32m+[m[32m        try:[m
+[32m+[m[32m            hashed_password = hashlib.sha256(password.encode()).hexdigest()[m
+[32m+[m[32m            conn = get_db_connection()[m
+[32m+[m[41m            [m
+[32m+[m[32m            # Check if user exists[m
+[32m+[m[32m            existing_user = conn.execute([m
+[32m+[m[32m                'SELECT id FROM users WHERE email = ?', (email,)[m
+[32m+[m[32m            ).fetchone()[m
+[32m+[m[41m            [m
+[32m+[m[32m            if existing_user:[m
+[32m+[m[32m                flash('Email already registered!', 'error')[m
+[32m+[m[32m                conn.close()[m
+[32m+[m[32m                return render_template('signup.html')[m
+[32m+[m[41m            [m
+[32m+[m[32m            # Create new user[m
+[32m+[m[32m            cursor = conn.cursor()[m
+[32m+[m[32m            cursor.execute([m
+[32m+[m[32m                'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',[m
+[32m+[m[32m                (fullname, email, hashed_password)[m
+[32m+[m[32m            )[m
+[32m+[m[32m            user_id = cursor.lastrowid[m
+[32m+[m[32m            conn.commit()[m
+[32m+[m[32m            conn.close()[m
+[32m+[m[41m            [m
+[32m+[m[32m            # Auto login[m
+[32m+[m[32m            session['user_id'] = user_id[m
+[32m+[m[32m            session['user_email'] = email[m
+[32m+[m[32m            session['user_name'] = fullname[m
+[32m+[m[32m            flash('Account created successfully!', 'success')[m
+[32m+[m[32m            return redirect('/dashboard')[m
+[32m+[m[41m            [m
+[32m+[m[32m        except Exception as e:[m
+[32m+[m[32m            flash(f'Registration error: {str(e)}', 'error')[m
+     [m
+     return render_template('signup.html')[m
+ [m
+[36m@@ -95,9 +163,61 @@[m [mdef dashboard():[m
+     if 'user_id' not in session:[m
+         return redirect('/login')[m
+     [m
+[32m+[m[32m    # Get stats from database[m
+[32m+[m[32m    try:[m
+[32m+[m[32m        conn = get_db_connection()[m
+[32m+[m[32m        vehicles_count = conn.execute('SELECT COUNT(*) FROM vehicles').fetchone()[0][m
+[32m+[m[32m        active_vehicles = conn.execute('SELECT COUNT(*) FROM vehicles WHERE status = \"Active\"').fetchone()[0][m
+[32m+[m[32m        conn.close()[m
+[32m+[m[32m    except:[m
+[32m+[m[32m        vehicles_count = 3[m
+[32m+[m[32m        active_vehicles = 2[m
+[32m+[m[41m    [m
+     return render_template('dashboard.html',[m
+                          user_name=session.get('user_name'),[m
+[31m-                         user_email=session.get('user_email'))[m
+[32m+[m[32m                         user_email=session.get('user_email'),[m
+[32m+[m[32m                         vehicles_count=vehicles_count,[m
+[32m+[m[32m                         active_vehicles=active_vehicles)[m
+[32m+[m
+[32m+[m[32m@app.route('/vehicles')[m
+[32m+[m[32mdef vehicles():[m
+[32m+[m[32m    if 'user_id' not in session:[m
+[32m+[m[32m        return redirect('/login')[m
+[32m+[m[41m    [m
+[32m+[m[32m    try:[m
+[32m+[m[32m        conn = get_db_connection()[m
+[32m+[m[32m        vehicles = conn.execute('SELECT * FROM vehicles ORDER BY created_at DESC').fetchall()[m
+[32m+[m[32m        conn.close()[m
+[32m+[m[32m    except Exception as e:[m
+[32m+[m[32m        vehicles = [][m
+[32m+[m[32m        flash(f'Error loading vehicles: {str(e)}', 'error')[m
+[32m+[m[41m    [m
+[32m+[m[32m    return render_template('vehicles.html', vehicles=vehicles)[m
+[32m+[m
+[32m+[m[32m@app.route('/add_vehicle', methods=['GET', 'POST'])[m
+[32m+[m[32mdef add_vehicle():[m
+[32m+[m[32m    if 'user_id' not in session:[m
+[32m+[m[32m        return redirect('/login')[m
+[32m+[m[41m    [m
+[32m+[m[32m    if request.method == 'POST':[m
+[32m+[m[32m        plate_number = request.form.get('plate_number')[m
+[32m+[m[32m        model = request.form.get('model')[m
+[32m+[m[32m        capacity = request.form.get('capacity')[m
+[32m+[m[41m        [m
+[32m+[m[32m        try:[m
+[32m+[m[32m            conn = get_db_connection()[m
+[32m+[m[32m            conn.execute([m
+[32m+[m[32m                'INSERT INTO vehicles (plate_number, model, capacity) VALUES (?, ?, ?)',[m
+[32m+[m[32m                (plate_number, model, capacity)[m
+[32m+[m[32m            )[m
+[32m+[m[32m            conn.commit()[m
+[32m+[m[32m            conn.close()[m
+[32m+[m[32m            flash('Vehicle added successfully!', 'success')[m
+[32m+[m[32m            return redirect('/vehicles')[m
+[32m+[m[32m        except Exception as e:[m
+[32m+[m[32m            flash(f'Error adding vehicle: {str(e)}', 'error')[m
+[32m+[m[41m    [m
+[32m+[m[32m    return render_template('add_vehicle.html')[m
+ [m
+ @app.route('/logout')[m
+ def logout():[m
+[36m@@ -105,18 +225,12 @@[m [mdef logout():[m
+     flash('You have been logged out', 'info')[m
+     return redirect('/login')[m
+ [m
+[31m-# ========================[m
+[31m-# MAIN[m
+[31m-# ========================[m
+[31m-[m
+ if __name__ == '__main__':[m
+     print('🚀 TMS Application Starting...')[m
+     print('📍 Login: http://127.0.0.1:5000/login')[m
+[31m-    print('📍 Signup: http://127.0.0.1:5000/signup')[m
+[32m+[m[32m    print('📍 Signup: http://127.0.0.1:5000/signup')[m[41m [m
+     print('📍 Dashboard: http://127.0.0.1:5000/dashboard')[m
+[32m+[m[32m    print('📍 Vehicles: http://127.0.0.1:5000/vehicles')[m
+     print('')[m
+[31m-    print('⚡ If you see connection refused, try these URLs:')[m
+[31m-    print('📍 http://localhost:5000')[m
+[31m-    print('📍 http://192.168.75.67:5000')[m
+[31m-    print('')[m
+[32m+[m[32m    print('💾 Using SQLite database: tms_database.db')[m
+     app.run(debug=True, host='0.0.0.0', port=5000)[m
+[1mdiff --git a/app_patched.py b/app_patched.py[m
+[1mdeleted file mode 100644[m
+[1mindex 776fc93..0000000[m
+[1m--- a/app_patched.py[m
+[1m+++ /dev/null[m
+[36m@@ -1,321 +0,0 @@[m
+[31m-﻿# Enhanced app.py with authentication[m
+[31m-# app.py - UAP TMS with Complete Authentication[m
+[31m-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify[m
+[31m-import sqlite3[m
+[31m-from datetime import datetime[m
+[31m-import hashlib[m
+[31m-import os[m
+[31m-[m
+[31m-app = Flask(__name__)[m
+[31m-app.secret_key = 'uap-tms-secure-key-2024'[m
+[31m-app.config['TEMPLATES_AUTO_RELOAD'] = True[m
+[31m-[m
+[31m-def hash_password(password):[m
+[31m-    """Hash password for security"""[m
+[31m-    return hashlib.sha256(password.encode()).hexdigest()[m
+[31m-[m
+[31m-def init_db():[m
+[31m-    """Initialize database with required tables"""[m
+[31m-    conn = sqlite3.connect('uap_tms.db')[m
+[31m-    c = conn.cursor()[m
+[31m-    [m
+[31m-    # Users table[m
+[31m-    c.execute('''[m
+[31m-        CREATE TABLE IF NOT EXISTS users ([m
+[31m-            id INTEGER PRIMARY KEY AUTOINCREMENT,[m
+[31m-            username TEXT UNIQUE NOT NULL,[m
+[31m-            password TEXT NOT NULL,[m
+[31m-            user_type TEXT NOT NULL,[m
+[31m-            full_name TEXT NOT NULL,[m
+[31m-            email TEXT,[m
+[31m-            phone TEXT,[m
+[31m-            department TEXT,[m
+[31m-            student_id TEXT,[m
+[31m-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP[m
+[31m-        )[m
+[31m-    ''')[m
+[31m-    [m
+[31m-    # Buses table[m
+[31m-    c.execute('''[m
+[31m-        CREATE TABLE IF NOT EXISTS buses ([m
+[31m-            id INTEGER PRIMARY KEY AUTOINCREMENT,[m
+[31m-            bus_number TEXT NOT NULL,[m
+[31m-            route TEXT NOT NULL,[m
+[31m-            departure_time TEXT NOT NULL,[m
+[31m-            capacity INTEGER DEFAULT 40,[m
+[31m-            available_seats INTEGER,[m
+[31m-            driver_name TEXT,[m
+[31m-            driver_phone TEXT[m
+[31m-        )[m
+[31m-    ''')[m
+[31m-    [m
+[31m-    # Registrations table[m
+[31m-    c.execute('''[m
+[31m-        CREATE TABLE IF NOT EXISTS registrations ([m
+[31m-            id INTEGER PRIMARY KEY AUTOINCREMENT,[m
+[31m-            user_id INTEGER,[m
+[31m-            bus_id INTEGER,[m
+[31m-            registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,[m
+[31m-            status TEXT DEFAULT 'confirmed',[m
+[31m-            payment_status TEXT DEFAULT 'pending',[m
+[31m-            FOREIGN KEY (user_id) REFERENCES users (id),[m
+[31m-            FOREIGN KEY (bus_id) REFERENCES buses (id)[m
+[31m-        )[m
+[31m-    ''')[m
+[31m-    [m
+[31m-    # Insert demo users - FIXED: Use None instead of NULL[m
+[31m-    demo_users = [[m
+[31m-        ('student1', hash_password('password123'), 'student', 'Samia Zaman', 'samia@uap.edu.bd', '01700123456', 'CSE', '23101174'),[m
+[31m-        ('student2', hash_password('password123'), 'student', 'Zakir Hossain', 'zakir@uap.edu.bd', '01700123457', 'CSE', '23101177'),[m
+[31m-        ('student3', hash_password('password123'), 'student', 'Retu Islam', 'retu@uap.edu.bd', '01700123458', 'EEE', '23101187'),[m
+[31m-        ('faculty1', hash_password('password123'), 'faculty', 'Dr. Atia Rahman', 'atia.rahman@uap.edu.bd', '01800123456', 'CSE', None),[m
+[31m-        ('admin1', hash_password('admin123'), 'admin', 'Transport Admin', 'transport@uap.edu.bd', '01900123456', 'Transport', None)[m
+[31m-    ][m
+[31m-    [m
+[31m-    for user in demo_users:[m
+[31m-        c.execute('''[m
+[31m-            INSERT OR IGNORE INTO users (username, password, user_type, full_name, email, phone, department, student_id)[m
+[31m-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)[m
+[31m-        ''', user)[m
+[31m-    [m
+[31m-    # Insert demo buses[m
+[31m-    demo_buses = [[m
+[31m-        ('UAP-BUS-01', 'Mirpur to UAP Campus', '08:00 AM', 40, 25, 'Abdul Karim', '01700123459'),[m
+[31m-        ('UAP-BUS-02', 'Dhanmondi to UAP Campus', '08:30 AM', 40, 18, 'Mohammad Ali', '01700123460'),[m
+[31m-        ('UAP-BUS-03', 'Gulshan to UAP Campus', '09:00 AM', 40, 40, 'Rahim Khan', '01700123461'),[m
+[31m-        ('UAP-BUS-04', 'UAP to Mirpur', '04:00 PM', 40, 32, 'Abdul Karim', '01700123459'),[m
+[31m-        ('UAP-BUS-05', 'UAP to Dhanmondi', '04:30 PM', 40, 40, 'Mohammad Ali', '01700123460')[m
+[31m-    ][m
+[31m-    [m
+[31m-    for bus in demo_buses:[m
+[31m-        c.execute('''[m
+[31m-            INSERT OR IGNORE INTO buses (bus_number, route, departure_time, capacity, available_seats, driver_name, driver_phone)[m
+[31m-            VALUES (?, ?, ?, ?, ?, ?, ?)[m
+[31m-        ''', bus)[m
+[31m-    [m
+[31m-    conn.commit()[m
+[31m-    conn.close()[m
+[31m-    print("? Database initialized with demo data")[m
+[31m-[m
+[31m-# Initialize database[m
+[31m-init_db()[m
+[31m-[m
+[31m-# Authentication routes[m
+[31m-@app.route('/')[m
+[31m-def home():[m
+[31m-    """Home page"""[m
+[31m-    return render_template('index.html')[m
+[31m-[m
+[31m-@app.route('/signup', methods=['GET', 'POST'])[m
+[31m-def signup():[m
+[31m-    """User registration/sign up"""[m
+[31m-    if request.method == 'POST':[m
+[31m-        username = request.form['username'][m
+[31m-        password = request.form['password'][m
+[31m-        confirm_password = request.form['confirm_password'][m
+[31m-        user_type = request.form['user_type'][m
+[31m-        full_name = request.form['full_name'][m
+[31m-        email = request.form['email'][m
+[31m-        phone = request.form['phone'][m
+[31m-        department = request.form.get('department', '')[m
+[31m-        student_id = request.form.get('student_id', '')[m
+[31m-        [m
+[31m-        # Validation[m
+[31m-        if password != confirm_password:[m
+[31m-            flash('Passwords do not match!', 'error')[m
+[31m-            return render_template('signup.html')[m
+[31m-        [m
+[31m-        if len(password) < 6:[m
+[31m-            flash('Password must be at least 6 characters long!', 'error')[m
+[31m-            return render_template('signup.html')[m
+[31m-        [m
+[31m-        try:[m
+[31m-            conn = sqlite3.connect('uap_tms.db')[m
+[31m-            c = conn.cursor()[m
+[31m-            [m
+[31m-            # Check if username already exists[m
+[31m-            c.execute('SELECT id FROM users WHERE username = ?', (username,))[m
+[31m-            if c.fetchone():[m
+[31m-                flash('Username already exists! Please choose another.', 'error')[m
+[31m-                return render_template('signup.html')[m
+[31m-            [m
+[31m-            # Insert new user[m
+[31m-            hashed_password = hash_password(password)[m
+[31m-            c.execute('''[m
+[31m-                INSERT INTO users (username, password, user_type, full_name, email, phone, department, student_id)[m
+[31m-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)[m
+[31m-            ''', (username, hashed_password, user_type, full_name, email, phone, department, student_id))[m
+[31m-            [m
+[31m-            conn.commit()[m
+[31m-            conn.close()[m
+[31m-            [m
+[31m-            flash('Registration successful! Please login to continue.', 'success')[m
+[31m-            return redirect(url_for('login'))[m
+[31m-            [m
+[31m-        except Exception as e:[m
+[31m-            flash(f'Registration error: {str(e)}', 'error')[m
+[31m-    [m
+[31m-    return render_template('signup.html')[m
+[31m-[m
+[31m-@app.route('/login', methods=['GET', 'POST'])[m
+[31m-def login():[m
+[31m-    """User login"""[m
+[31m-    if request.method == 'POST':[m
+[31m-        username = request.form['username'][m
+[31m-        password = request.form['password'][m
+[31m-        [m
+[31m-        conn = sqlite3.connect('uap_tms.db')[m
+[31m-        c = conn.cursor()[m
+[31m-        [m
+[31m-        # Get user with hashed password check[m
+[31m-        c.execute('SELECT * FROM users WHERE username = ?', (username,))[m
+[31m-        user = c.fetchone()[m
+[31m-        conn.close()[m
+[31m-        [m
+[31m-        if user and user[2] == hash_password(password):  # user[2] is password field[m
+[31m-            session['user_id'] = user[0][m
+[31m-            session['username'] = user[1][m
+[31m-            session['user_type'] = user[3][m
+[31m-            session['full_name'] = user[4][m
+[31m-            flash(f'Welcome back, {user[4]}!', 'success')[m
+[31m-            return redirect(url_for('dashboard'))[m
+[31m-        else:[m
+[31m-            flash('Invalid username or password!', 'error')[m
+[31m-    [m
+[31m-    return render_template('login.html')[m
+[31m-[m
+[31m-@app.route('/dashboard')[m
+[31m-def dashboard():[m
+[31m-    """User dashboard"""[m
+[31m-    if 'user_id' not in session:[m
+[31m-        flash('Please login first!', 'error')[m
+[31m-        return redirect(url_for('login'))[m
+[31m-    [m
+[31m-    conn = sqlite3.connect('uap_tms.db')[m
+[31m-    c = conn.cursor()[m
+[31m-    [m
+[31m-    # Get available buses[m
+[31m-    c.execute('SELECT * FROM buses WHERE available_seats > 0')[m
+[31m-    buses = c.fetchall()[m
+[31m-    [m
+[31m-    # Get user's registrations[m
+[31m-    c.execute('''[m
+[31m-        SELECT r.*, b.bus_number, b.route, b.departure_time [m
+[31m-        FROM registrations r [m
+[31m-        JOIN buses b ON r.bus_id = b.id [m
+[31m-        WHERE r.user_id = ?[m
+[31m-        ORDER BY r.registration_date DESC[m
+[31m-    ''', (session['user_id'],))[m
+[31m-    registrations = c.fetchall()[m
+[31m-    [m
+[31m-    # Get user info[m
+[31m-    c.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],))[m
+[31m-    user = c.fetchone()[m
+[31m-    [m
+[31m-    conn.close()[m
+[31m-    [m
+[31m-    return render_template('dashboard.html', [m
+[31m-                         user=user, [m
+[31m-                         buses=buses, [m
+[31m-                         registrations=registrations,[m
+[31m-                         full_name=session.get('full_name'))[m
+[31m-[m
+[31m-@app.route('/bus/register/<int:bus_id>')[m
+[31m-def register_bus(bus_id):[m
+[31m-    """Register for a bus"""[m
+[31m-    if 'user_id' not in session:[m
+[31m-        flash('Please login first!', 'error')[m
+[31m-        return redirect(url_for('login'))[m
+[31m-    [m
+[31m-    try:[m
+[31m-        conn = sqlite3.connect('uap_tms.db')[m
+[31m-        c = conn.cursor()[m
+[31m-        [m
+[31m-        # Check if already registered[m
+[31m-        c.execute('SELECT * FROM registrations WHERE user_id = ? AND bus_id = ?', [m
+[31m-                 (session['user_id'], bus_id))[m
+[31m-        existing = c.fetchone()[m
+[31m-        [m
+[31m-        if existing:[m
+[31m-            flash('You are already registered for this bus!', 'warning')[m
+[31m-        else:[m
+[31m-            # Register user for bus[m
+[31m-            c.execute('''[m
+[31m-                INSERT INTO registrations (user_id, bus_id, status)[m
+[31m-                VALUES (?, ?, ?)[m
+[31m-            ''', (session['user_id'], bus_id, 'confirmed'))[m
+[31m-            [m
+[31m-            # Update available seats[m
+[31m-            c.execute('UPDATE buses SET available_seats = available_seats - 1 WHERE id = ?', (bus_id,))[m
+[31m-            [m
+[31m-            conn.commit()[m
+[31m-            [m
+[31m-            # Get bus info for

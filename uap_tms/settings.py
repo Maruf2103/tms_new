@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'buses',
     'tracking',
     'registrations',
+    'tms_core',
 ]
 
 MIDDLEWARE = [

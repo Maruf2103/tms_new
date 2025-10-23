@@ -25,12 +25,12 @@
                         <h5>Navigation</h5>
                     </div>
                     <div class="card-body">
-                        <ul class="list-unstyled">
-                            <li><a href="/dashboard" class="text-decoration-none">Dashboard</a></li>
-                            <li><a href="/reports" class="text-decoration-none">Reports</a></li>
-                            <li><a href="/vehicles" class="text-decoration-none">Vehicles</a></li>
-                            <li><a href="/drivers" class="text-decoration-none">Drivers</a></li>
-                        </ul>
+                        <div class="list-group">
+                            <a href="/dashboard" class="list-group-item list-group-item-action active">🏠 Dashboard</a>
+                            <a href="#" class="list-group-item list-group-item-action">🚗 Vehicles</a>
+                            <a href="#" class="list-group-item list-group-item-action">👨‍💼 Drivers</a>
+                            <a href="#" class="list-group-item list-group-item-action">🗺️ Routes</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -38,16 +38,16 @@
             <div class="col-md-9">
                 <div class="card">
                     <div class="card-header">
-                        <h4>Transport Management System</h4>
+                        <h4>Dashboard</h4>
                     </div>
                     <div class="card-body">
-                        <h5>Welcome to your dashboard!</h5>
+                        <h5>Welcome, {{ user_name }}! 👋</h5>
                         <p>You are logged in as: <strong>{{ user_email }}</strong></p>
                         
                         <div class="row mt-4">
                             <div class="col-md-4">
                                 <div class="card text-white bg-success">
-                                    <div class="card-body">
+                                    <div class="card-body text-center">
                                         <h5>Active Vehicles</h5>
                                         <h3>12</h3>
                                     </div>
@@ -55,7 +55,7 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="card text-white bg-info">
-                                    <div class="card-body">
+                                    <div class="card-body text-center">
                                         <h5>Total Drivers</h5>
                                         <h3>8</h3>
                                     </div>
@@ -63,7 +63,7 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="card text-white bg-warning">
-                                    <div class="card-body">
+                                    <div class="card-body text-center">
                                         <h5>Pending Tasks</h5>
                                         <h3>5</h3>
                                     </div>
