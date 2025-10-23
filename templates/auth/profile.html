@@ -1,0 +1,72 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class=\"container mt-4\">
+    <div class=\"row\">
+        <div class=\"col-md-8 mx-auto\">
+            <div class=\"card\">
+                <div class=\"card-header bg-info text-white\">
+                    <h4 class=\"mb-0\">My Profile</h4>
+                </div>
+                <div class=\"card-body\">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class=\"alert alert-{{ message.tags }} alert-dismissible fade show\" role=\"alert\">
+                                {{ message }}
+                                <button type=\"button\" class=\"btn-close\" data-bs-dismiss=\"alert\"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method=\"POST\">
+                        {% csrf_token %}
+                        
+                        <div class=\"row\">
+                            <div class=\"col-md-6\">
+                                <div class=\"mb-3\">
+                                    <label class=\"form-label\">Username</label>
+                                    <input type=\"text\" class=\"form-control\" value=\"{{ user.username }}\" readonly>
+                                </div>
+                            </div>
+                            <div class=\"col-md-6\">
+                                <div class=\"mb-3\">
+                                    <label class=\"form-label\">Email</label>
+                                    <input type=\"email\" class=\"form-control\" value=\"{{ user.email }}\" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class=\"mb-3\">
+                            <label for=\"user_type\" class=\"form-label\">User Type</label>
+                            <select class=\"form-select\" id=\"user_type\" name=\"user_type\">
+                                <option value=\"student\" {% if profile.user_type == 'student' %}selected{% endif %}>Student</option>
+                                <option value=\"faculty\" {% if profile.user_type == 'faculty' %}selected{% endif %}>Faculty</option>
+                                <option value=\"staff\" {% if profile.user_type == 'staff' %}selected{% endif %}>Staff</option>
+                                <option value=\"authority\" {% if profile.user_type == 'authority' %}selected{% endif %}>Transport Authority</option>
+                            </select>
+                        </div>
+                        
+                        <div class=\"mb-3\">
+                            <label for=\"student_id\" class=\"form-label\">Student/Faculty ID</label>
+                            <input type=\"text\" class=\"form-control\" id=\"student_id\" name=\"student_id\" value=\"{{ profile.student_id|default:'' }}\">
+                        </div>
+                        
+                        <div class=\"mb-3\">
+                            <label for=\"phone\" class=\"form-label\">Phone Number</label>
+                            <input type=\"tel\" class=\"form-control\" id=\"phone\" name=\"phone\" value=\"{{ profile.phone }}\" required>
+                        </div>
+                        
+                        <div class=\"mb-3\">
+                            <label for=\"address\" class=\"form-label\">Address</label>
+                            <textarea class=\"form-control\" id=\"address\" name=\"address\" rows=\"3\" required>{{ profile.address }}</textarea>
+                        </div>
+                        
+                        <button type=\"submit\" class=\"btn btn-primary\">Update Profile</button>
+                        <a href=\"{% url 'dashboard' %}\" class=\"btn btn-secondary\">Back to Dashboard</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

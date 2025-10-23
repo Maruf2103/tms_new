@@ -1,5 +1,5 @@
 ﻿from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 import uuid
 from django.utils import timezone
 
@@ -11,7 +11,7 @@ class UserProfile(models.Model):
         ('authority', 'Transport Authority'),
     )
     
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     user_type = models.CharField(max_length=20, choices=USER_TYPES, default='student')
     student_id = models.CharField(max_length=20, blank=True, null=True)
     phone = models.CharField(max_length=15, default='')
@@ -66,7 +66,7 @@ class Booking(models.Model):
     )
     
     booking_id = models.UUIDField(default=uuid.uuid4, unique=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
     booking_date = models.DateTimeField(auto_now_add=True)
     passengers = models.IntegerField(default=1)

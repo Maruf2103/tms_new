@@ -1,0 +1,89 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class=\"container mt-4\">
+    <h2 class=\"mb-4\">Manage Buses</h2>
+    
+    <div class=\"row\">
+        <div class=\"col-md-4\">
+            <div class=\"card\">
+                <div class=\"card-header bg-primary text-white\">
+                    <h5 class=\"mb-0\">Add New Bus</h5>
+                </div>
+                <div class=\"card-body\">
+                    <form method=\"POST\">
+                        {% csrf_token %}
+                        <div class=\"mb-3\">
+                            <label class=\"form-label\">Bus Number</label>
+                            <input type=\"text\" class=\"form-control\" name=\"bus_number\" required>
+                        </div>
+                        <div class=\"mb-3\">
+                            <label class=\"form-label\">Bus Name</label>
+                            <input type=\"text\" class=\"form-control\" name=\"bus_name\" required>
+                        </div>
+                        <div class=\"mb-3\">
+                            <label class=\"form-label\">Capacity</label>
+                            <input type=\"number\" class=\"form-control\" name=\"capacity\" required>
+                        </div>
+                        <div class=\"mb-3\">
+                            <label class=\"form-label\">Driver Name</label>
+                            <input type=\"text\" class=\"form-control\" name=\"driver_name\" required>
+                        </div>
+                        <div class=\"mb-3\">
+                            <label class=\"form-label\">Driver Contact</label>
+                            <input type=\"text\" class=\"form-control\" name=\"driver_contact\" required>
+                        </div>
+                        <button type=\"submit\" class=\"btn btn-primary w-100\">Add Bus</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class=\"col-md-8\">
+            <div class=\"card\">
+                <div class=\"card-header bg-success text-white\">
+                    <h5 class=\"mb-0\">Existing Buses ({{ buses.count }})</h5>
+                </div>
+                <div class=\"card-body\">
+                    {% if buses %}
+                    <div class=\"table-responsive\">
+                        <table class=\"table table-striped\">
+                            <thead>
+                                <tr>
+                                    <th>Bus Number</th>
+                                    <th>Bus Name</th>
+                                    <th>Capacity</th>
+                                    <th>Driver</th>
+                                    <th>Contact</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bus in buses %}
+                                <tr>
+                                    <td>{{ bus.bus_number }}</td>
+                                    <td>{{ bus.bus_name }}</td>
+                                    <td>{{ bus.capacity }}</td>
+                                    <td>{{ bus.driver_name }}</td>
+                                    <td>{{ bus.driver_contact }}</td>
+                                    <td>
+                                        {% if bus.is_active %}
+                                        <span class=\"badge bg-success\">Active</span>
+                                        {% else %}
+                                        <span class=\"badge bg-danger\">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class=\"text-muted\">No buses added yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

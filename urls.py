@@ -1,13 +1,24 @@
-from django.contrib import admin
-from django.urls import path, include
-from django.views.generic import RedirectView
-from transportation import views as transport_views
+﻿from django.contrib import admin
+from django.urls import path
+from buses import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('admin-panel/', include('custom_admin.urls')),
-    path('transport/', include('transportation.urls')),
-    path('', transport_views.home, name='home'),
-    path('login/', transport_views.user_login, name='login'),
-    path('signup/', transport_views.signup, name='signup'),
+    
+    # Authentication URLs
+    path('', views.home, name='home'),
+    path('signup/', views.signup, name='signup'),
+    path('signin/', views.signin, name='signin'),
+    path('sign-out/', views.sign_out, name='sign_out'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('profile/', views.profile, name='profile'),
+    
+    # Authority Panel URLs
+    path('authority-panel/', views.authority_panel, name='authority_panel'),
+    path('authority/buses/', views.manage_buses, name='manage_buses'),
+    path('authority/routes/', views.manage_routes, name='manage_routes'),
+    path('authority/schedules/', views.manage_schedules, name='manage_schedules'),
+    path('authority/bookings/', views.view_bookings, name='view_bookings'),
+    
+    # Add other existing URLs here
 ]
