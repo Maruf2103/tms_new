@@ -1,11 +1,11 @@
-﻿from flask import Flask, redirect
-from app.auth.routes import auth_bp  # ADD THIS IMPORT
+from flask import Flask, redirect
+# # # from app.auth.routes import auth_bp  # TODO: Set up auth later  # FIXME: Import disabled for now  # TEMPORARILY DISABLED  # ADD THIS IMPORT
 
 app = Flask(__name__)
 app.secret_key = 'tms-production-secret-2024'  # ADD SECRET KEY
 
 # Register blueprints
-app.register_blueprint(auth_bp)  # ADD THIS REGISTRATION
+# app.register_blueprint(auth_bp)  # TODO: Enable when auth is set up  # ADD THIS REGISTRATION
 
 # Root route - redirect to login
 @app.route('/')
