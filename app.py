@@ -1,15 +1,22 @@
-﻿# app.py - WORKING VERSION
+﻿# app.py - CLEAN WORKING VERSION
 from flask import Flask, render_template, request, redirect, session, flash
 import hashlib
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'tms-secret-key-2024'
 
-# Simple in-memory user storage (replace with database later)
+# Ensure templates directory exists
+os.makedirs('templates', exist_ok=True)
+
+# Simple user storage (replace with database later)
 users = {}
 
-# ===== AUTHENTICATION ROUTES =====
+# ========================
+# ROUTES
+# ========================
+
 @app.route('/')
 def index():
     return redirect('/login')
@@ -27,7 +34,7 @@ def login():
         # Hash password
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         
-        # Check if user exists (for demo - auto create)
+        # For demo - auto create user if not exists
         if email not in users:
             users[email] = {
                 'name': 'Demo User',
@@ -36,6 +43,7 @@ def login():
             }
         
         if users[email]['password'] == hashed_password:
+            session['user_id'] = email
             session['user_email'] = email
             session['user_name'] = users[email]['name']
             flash('Login successful!', 'success')
@@ -73,12 +81,23 @@ def signup():
             'email': email
         }
         
+        session['user_id'] = email
         session['user_email'] = email
         session['user_name'] = fullname
+        
         flash('Account created successfully!', 'success')
         return redirect('/dashboard')
     
     return render_template('signup.html')
+
+@app.route('/dashboard')
+def dashboard():
+    if 'user_id' not in session:
+        return redirect('/login')
+    
+    return render_template('dashboard.html',
+                         user_name=session.get('user_name'),
+                         user_email=session.get('user_email'))
 
 @app.route('/logout')
 def logout():
@@ -86,20 +105,18 @@ def logout():
     flash('You have been logged out', 'info')
     return redirect('/login')
 
-@app.route('/dashboard')
-def dashboard():
-    if 'user_email' not in session:
-        return redirect('/login')
-    
-    return render_template('dashboard.html', 
-                         user_name=session.get('user_name'),
-                         user_email=session.get('user_email'))
+# ========================
+# MAIN
+# ========================
 
-# ===== MAIN APPLICATION =====
 if __name__ == '__main__':
-    print("🚀 TMS Application Starting...")
-    print("📍 Login: http://localhost:5000/login")
-    print("📍 Signup: http://localhost:5000/signup")
-    print("📍 Dashboard: http://localhost:5000/dashboard")
-    print("Press CTRL+C to stop the server")
-    app.run(debug=True, port=5000)
+    print('🚀 TMS Application Starting...')
+    print('📍 Login: http://127.0.0.1:5000/login')
+    print('📍 Signup: http://127.0.0.1:5000/signup')
+    print('📍 Dashboard: http://127.0.0.1:5000/dashboard')
+    print('')
+    print('⚡ If you see connection refused, try these URLs:')
+    print('📍 http://localhost:5000')
+    print('📍 http://192.168.75.67:5000')
+    print('')
+    app.run(debug=True, host='0.0.0.0', port=5000)
