@@ -233,4 +233,4 @@ if __name__ == '__main__':
     print('📍 Vehicles: http://127.0.0.1:5000/vehicles')
     print('')
     print('💾 Using SQLite database: tms_database.db')
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=8000, debug=True)
