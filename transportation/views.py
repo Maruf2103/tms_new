@@ -1,31 +1,40 @@
 ﻿from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
+from django.http import HttpResponse
+
+def home_view(request):
+    return HttpResponse('
+        <h1>Welcome to TMS</h1>
+        <a href=\"/login/\">Login</a> | 
+        <a href=\"/signup/\">Sign Up</a> |
+        <a href=\"/dashboard/\">Dashboard</a>
+    ')
 
 def login_view(request):
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                messages.success(request, f'Welcome back, {username}!')
-                next_url = request.GET.get('next', 'dashboard')
-                return redirect(next_url)
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('dashboard')
         else:
-            messages.error(request, 'Invalid username or password.')
-    else:
-        form = AuthenticationForm()
+            return HttpResponse('Invalid login')
     
-    return render(request, 'transportation/login.html', {'form': form})
+    return HttpResponse('
+        <h2>Login</h2>
+        <form method=\"post\">
+            <input type=\"text\" name=\"username\" placeholder=\"Username\" required><br>
+            <input type=\"password\" name=\"password\" placeholder=\"Password\" required><br>
+            <button type=\"submit\">Login</button>
+        </form>
+        <a href=\"/signup/\">Don\'t have an account? Sign up</a>
+    ')
 
 def logout_view(request):
     logout(request)
-    messages.success(request, 'You have been successfully logged out.')
     return redirect('home')
 
 def signup_view(request):
@@ -34,18 +43,24 @@ def signup_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, 'Account created successfully!')
             return redirect('dashboard')
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = UserCreationForm()
     
-    return render(request, 'transportation/signup.html', {'form': form})
+    form = UserCreationForm()
+    return HttpResponse(f'
+        <h2>Sign Up</h2>
+        <form method=\"post\">
+            <input type=\"text\" name=\"username\" placeholder=\"Username\" required><br>
+            <input type=\"password\" name=\"password1\" placeholder=\"Password\" required><br>
+            <input type=\"password\" name=\"password2\" placeholder=\"Confirm Password\" required><br>
+            <button type=\"submit\">Sign Up</button>
+        </form>
+        <a href=\"/login/\">Already have an account? Login</a>
+    ')
 
 @login_required
 def dashboard_view(request):
-    return render(request, 'transportation/dashboard.html')
-
-def home_view(request):
-    return render(request, 'transportation/index.html')
+    return HttpResponse(f'
+        <h2>Dashboard</h2>
+        <p>Welcome, {request.user.username}!</p>
+        <a href=\"/logout/\">Logout</a>
+    ')

@@ -1,14 +1,13 @@
-﻿from django.contrib import admin
+from django.contrib import admin
 from django.urls import path, include
-from transportation import views as transportation_views
+from django.views.generic import RedirectView
+from transportation import views as transport_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('custom-admin/', include('custom_admin.urls')),
-    path('', transportation_views.home_view, name='home'),
-    path('login/', transportation_views.login_view, name='login'),
-    path('logout/', transportation_views.logout_view, name='logout'),
-    path('signup/', transportation_views.signup_view, name='signup'),
-    path('dashboard/', transportation_views.dashboard_view, name='dashboard'),
-    path('transportation/', include('transportation.urls')),
+    path('admin-panel/', include('custom_admin.urls')),
+    path('transport/', include('transportation.urls')),
+    path('', transport_views.home, name='home'),
+    path('login/', transport_views.user_login, name='login'),
+    path('signup/', transport_views.signup, name='signup'),
 ]
