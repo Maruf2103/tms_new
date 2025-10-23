@@ -1,9 +1,0 @@
-﻿# Add this to your app.py or routes file
-@app.route('/dashboard')
-def dashboard():
-    if 'user_id' not in session:
-        return redirect('/login')
-    
-    return render_template('dashboard.html', 
-                         user_name=session.get('user_name'),
-                         user_email=session.get('user_email'))
