@@ -1,4 +1,7 @@
 from django.db import models
+from django.conf import settings
+import uuid
+from django.utils import timezone
 
 class Bus(models.Model):
     bus_number = models.CharField(max_length=20, unique=True, default='UAP-001')
@@ -14,10 +17,74 @@ class Route(models.Model):
     route_name = models.CharField(max_length=100, default='UAP Route')
     start_point = models.CharField(max_length=255, default='UAP Campus')
     end_point = models.CharField(max_length=255, default='City Center')
+    stops = models.TextField(help_text='Comma separated bus stops', default='', blank=True)
+    distance = models.FloatField(help_text='Distance in km', default=0)
+    estimated_time = models.IntegerField(help_text='Estimated time in minutes', default=0)
     fare = models.DecimalField(max_digits=6, decimal_places=2, default=20.00)
 
     def __str__(self):
         return f"{self.route_name}"
+
+class UserProfile(models.Model):
+    USER_TYPES = (
+        ('student', 'Student'),
+        ('faculty', 'Faculty'),
+        ('staff', 'Staff'),
+        ('authority', 'Transport Authority'),
+    )
+    
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bus_user_profile')
+    user_type = models.CharField(max_length=20, choices=USER_TYPES, default='student')
+    student_id = models.CharField(max_length=20, blank=True, null=True)
+    phone = models.CharField(max_length=15, default='')
+    address = models.TextField(default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.user.username} - {self.user_type}'
+
+class Schedule(models.Model):
+    bus = models.ForeignKey(Bus, on_delete=models.CASCADE)
+    route = models.ForeignKey(Route, on_delete=models.CASCADE)
+    departure_time = models.TimeField()
+    arrival_time = models.TimeField()
+    available_seats = models.IntegerField(default=40)
+    is_active = models.BooleanField(default=True)
+    date = models.DateField(default=timezone.now)
+
+    def __str__(self):
+        return f'{self.bus.bus_number} - {self.route.route_name} - {self.departure_time}'
+
+class Booking(models.Model):
+    PAYMENT_STATUS = (
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    )
+    
+    booking_id = models.UUIDField(default=uuid.uuid4, unique=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bus_bookings')
+    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
+    booking_date = models.DateTimeField(auto_now_add=True)
+    passengers = models.IntegerField(default=1)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='pending')
+    is_confirmed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'Booking {self.booking_id} - {self.user.username}'
+
+class Payment(models.Model):
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='bus_payments')
+    transaction_id = models.CharField(max_length=100, unique=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=50, default='bkash')
+    payment_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default='pending')
+
+    def __str__(self):
+        return f'Payment {self.transaction_id} - {self.amount}'
 
 # =============================================
 # ADDITIONAL MODELS FOR AUTHENTICATION - ADDED BY SAMIA
@@ -45,10 +112,10 @@ class UserProfile(models.Model):
         return f'{self.user.username} - {self.user_type}'
 
 class Route(models.Model):
-    route_name = models.CharField(max_length=100)
-    start_point = models.CharField(max_length=255)
-    end_point = models.CharField(max_length=255)
-    stops = models.TextField(help_text='Comma separated bus stops')
+    route_name = models.CharField(max_length=100, default='UAP Route')
+    start_point = models.CharField(max_length=255, default='UAP Campus')
+    end_point = models.CharField(max_length=255, default='City Center')
+    stops = models.TextField(help_text='Comma separated bus stops', default='UAP Campus, City Center', blank=True)
     distance = models.FloatField(help_text='Distance in km', default=0)
     estimated_time = models.IntegerField(help_text='Estimated time in minutes', default=0)
     fare = models.DecimalField(max_digits=6, decimal_places=2, default=20.00)

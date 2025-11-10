@@ -11,6 +11,25 @@ User = get_user_model()
 def home(request):
     return render(request, 'home.html')
 
+def signup(request):
+    if request.method == 'POST':
+        # Add your signup logic here
+        pass
+    return render(request, 'signup.html')
+
+def signin(request):
+    if request.method == 'POST':
+        # Add your signin logic here
+        pass
+    return render(request, 'login.html')
+
+def sign_out(request):
+    logout(request)
+    return redirect('home')
+
+def dashboard(request):
+    return render(request, 'dashboard.html')
+
 # Bus registration views - by Zakir
 def bus_registration(request):
     return render(request, 'bus/registration.html')
@@ -18,14 +37,29 @@ def bus_registration(request):
 def search_routes(request):
     return render(request, 'bus/search_routes.html')
 
+def booking_confirmation(request):
+    # Get the booking details from session or POST data
+    booking = request.session.get('booking_details', {})
+    
+    if not booking:
+        messages.error(request, 'No booking information found.')
+        return redirect('home')
+        
+    context = {
+        'booking': booking
+    }
+    
+    # Clear the booking details from session after displaying
+    if 'booking_details' in request.session:
+        del request.session['booking_details']
+        
+    return render(request, 'bus/booking_confirmation.html', context)
+
 def select_bus(request):
     return render(request, 'bus/select_bus.html')
 
-def payment(request):
+def make_payment(request):
     return render(request, 'bus/payment.html')
-
-def confirmation(request):
-    return render(request, 'bus/confirmation.html')
 
 def contact_us(request):
     return render(request, 'contact_us.html')
