@@ -15,6 +15,7 @@ urlpatterns = [
     path('view-schedules/', views.view_schedules, name='view_schedules'),
     path('book-bus/<int:schedule_id>/', views.book_bus, name='book_bus'),
     path('booking-confirmation/', views.booking_confirmation, name='booking_confirmation'),
+    path('cancel-booking/<uuid:booking_id>/', views.cancel_booking, name='cancel_booking'),
     
     # Admin management URLs
     path('manage-buses/', views.manage_buses, name='manage_buses'),

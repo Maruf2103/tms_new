@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from .models import *
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.http import HttpResponseForbidden, JsonResponse
 
 User = get_user_model()
 
@@ -230,14 +232,37 @@ def view_schedules(request):
         except Exception:
             pass
 
+    # time range filter: morning/afternoon/evening
+    time_range = request.GET.get('time_range', '').strip()
+    if time_range:
+        from datetime import time
+        if time_range == 'morning':
+            schedules = schedules.filter(departure_time__gte=time(5,0), departure_time__lte=time(11,59))
+        elif time_range == 'afternoon':
+            schedules = schedules.filter(departure_time__gte=time(12,0), departure_time__lte=time(16,59))
+        elif time_range == 'evening':
+            schedules = schedules.filter(departure_time__gte=time(17,0), departure_time__lte=time(22,59))
+
     schedules = schedules.order_by('date', 'departure_time')
 
+    # pagination
+    page = request.GET.get('page', 1)
+    paginator = Paginator(schedules, 10)
+    try:
+        schedules_page = paginator.page(page)
+    except PageNotAnInteger:
+        schedules_page = paginator.page(1)
+    except EmptyPage:
+        schedules_page = paginator.page(paginator.num_pages)
+
     context = {
-        'schedules': schedules,
+        'schedules': schedules_page,
         'routes': routes,
         'selected_route': route_id or '',
         'q': q,
         'selected_date': date,
+        'paginator': paginator,
+        'page_obj': schedules_page,
     }
     return render(request, 'bus/view_schedules.html', context)
 
@@ -319,6 +344,31 @@ def select_bus(request):
 
 def make_payment(request):
     return render(request, 'bus/payment.html')
+
+
+@login_required
+def cancel_booking(request, booking_id):
+    # Allow student to cancel their own booking; restore seats and mark cancelled
+    try:
+        booking = Booking.objects.select_related('schedule').get(booking_id=booking_id)
+    except Booking.DoesNotExist:
+        messages.error(request, 'Booking not found.')
+        return redirect('dashboard')
+
+    if booking.user != request.user:
+        return HttpResponseForbidden('You cannot cancel this booking.')
+
+    # restore seats
+    schedule = booking.schedule
+    schedule.available_seats = schedule.available_seats + booking.passengers
+    schedule.save()
+
+    booking.payment_status = 'cancelled'
+    booking.is_confirmed = False
+    booking.save()
+
+    messages.success(request, 'Booking cancelled and seats restored.')
+    return redirect('dashboard')
 
 def contact_us(request):
     return render(request, 'contact_us.html')
@@ -414,8 +464,26 @@ def dashboard(request):
     except UserProfile.DoesNotExist:
         user_profile = UserProfile.objects.create(user=request.user, user_type='student')
     
+    # determine authority
+    is_authority = user_profile.user_type == 'authority'
+
+    # upcoming schedules for quick booking (students only)
+    upcoming_schedules = []
+    from django.utils import timezone
+    today = timezone.now().date()
+    if not is_authority:
+        upcoming_schedules = Schedule.objects.filter(is_active=True, date__gte=today).select_related('bus', 'route').order_by('date', 'departure_time')[:10]
+
+    # student's recent bookings
+    my_bookings = []
+    if not is_authority:
+        my_bookings = Booking.objects.select_related('schedule', 'schedule__route', 'schedule__bus').filter(user=request.user).order_by('-booking_date')[:10]
+
     context = {
-        'user_profile': user_profile
+        'user_profile': user_profile,
+        'is_authority': is_authority,
+        'upcoming_schedules': upcoming_schedules,
+        'my_bookings': my_bookings,
     }
     return render(request, 'dashboard.html', context)
 
