@@ -56,6 +56,18 @@
                     <form method="post">
                         {% csrf_token %}
                         <div class="form-group">
+                            <label>Ticket Type:</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="package" id="package_single" value="single" checked>
+                                <label class="form-check-label" for="package_single">Single Ticket</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="package" id="package_monthly" value="monthly">
+                                <label class="form-check-label" for="package_monthly">Monthly Package (subscribe for ~30 days)</label>
+                            </div>
+                            <small id="monthlyInfo" class="form-text text-muted mt-2" style="display:none;"></small>
+                        </div>
+                        <div class="form-group">
                             <label for="passengers">Number of Passengers:</label>
                             <input type="number" class="form-control" id="passengers" name="passengers" 
                                    min="1" max="{{ schedule.available_seats }}" value="1" required>
@@ -76,10 +88,23 @@
 <script>
 document.getElementById('passengers').addEventListener('input', function(e) {
     const seats = parseInt(e.target.value);
-    const maxSeats = {{ schedule.available_seats }};
+    const maxSeats = parseInt('{{ schedule.available_seats }}' || '0');
     if (seats > maxSeats) {
         e.target.value = maxSeats;
     }
 });
+
+// Show monthly info dynamically
+function updateMonthlyInfo(){
+    const passengers = parseInt(document.getElementById('passengers').value || '1');
+    const fare = parseFloat('{{ schedule.route.fare }}');
+    const multiplier = 22; // approximation
+    const monthly = (fare * passengers * multiplier).toFixed(2);
+    document.getElementById('monthlyInfo').textContent = `Estimated monthly price (approx ${multiplier} trips): $${monthly} — payment at checkout.`;
+}
+
+document.getElementById('package_single').addEventListener('change', function(){ document.getElementById('monthlyInfo').style.display='none'; });
+document.getElementById('package_monthly').addEventListener('change', function(){ document.getElementById('monthlyInfo').style.display='block'; updateMonthlyInfo(); });
+document.getElementById('passengers').addEventListener('change', function(){ if(document.getElementById('package_monthly').checked){ updateMonthlyInfo(); }});
 </script>
 {% endblock %}

@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from .models import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponseForbidden, JsonResponse
+from decimal import Decimal
+from datetime import date, timedelta
 
 User = get_user_model()
 
@@ -307,38 +309,76 @@ def book_bus(request, schedule_id):
         
         if request.method == 'POST':
             passengers = int(request.POST.get('passengers', 1))
-            
-            if passengers > schedule.available_seats:
-                messages.error(request, 'Not enough seats available.')
-                return redirect('view_schedules')
-            
-            # Calculate total amount
-            total_amount = schedule.route.fare * passengers
-            
-            # Create booking
-            booking = Booking.objects.create(
-                user=request.user,
-                schedule=schedule,
-                passengers=passengers,
-                total_amount=total_amount
-            )
-            
-            # Update available seats
-            schedule.available_seats -= passengers
-            schedule.save()
-            
-            # Store booking details in session
-            request.session['booking_details'] = {
-                'booking_id': str(booking.booking_id),
-                'bus_number': schedule.bus.bus_number,
-                'route': f"{schedule.route.start_point} to {schedule.route.end_point}",
-                'date': schedule.date.strftime('%Y-%m-%d'),
-                'time': schedule.departure_time.strftime('%H:%M'),
-                'seats': passengers,
-                'total_fare': float(total_amount)
-            }
-            
-            return redirect('booking_confirmation')
+            package = request.POST.get('package', 'single')
+
+            if package == 'single':
+                if passengers > schedule.available_seats:
+                    messages.error(request, 'Not enough seats available.')
+                    return redirect('view_schedules')
+
+                # Calculate total amount
+                total_amount = schedule.route.fare * passengers
+
+                # Create booking
+                booking = Booking.objects.create(
+                    user=request.user,
+                    schedule=schedule,
+                    passengers=passengers,
+                    total_amount=total_amount
+                )
+
+                # Update available seats for this schedule instance
+                schedule.available_seats -= passengers
+                schedule.save()
+
+                # Store booking details in session
+                request.session['booking_details'] = {
+                    'type': 'single',
+                    'booking_id': str(booking.booking_id),
+                    'bus_number': schedule.bus.bus_number,
+                    'route': f"{schedule.route.start_point} to {schedule.route.end_point}",
+                    'date': schedule.date.strftime('%Y-%m-%d'),
+                    'time': schedule.departure_time.strftime('%H:%M'),
+                    'seats': passengers,
+                    'total_fare': float(total_amount)
+                }
+
+                return redirect('booking_confirmation')
+
+            elif package == 'monthly':
+                # Monthly subscription: user subscribes to this schedule for ~30 days
+                # We do not reserve seats across all days here (seat management for recurring trips is complex).
+                # Monthly pricing: use 22 trips approximation (working days) by default.
+                multiplier = Decimal('22')
+                fare = Decimal(str(schedule.route.fare))
+                monthly_amount = (fare * Decimal(passengers) * multiplier).quantize(Decimal('0.01'))
+
+                # create subscription
+                subscription = MonthlySubscription.objects.create(
+                    user=request.user,
+                    schedule=schedule,
+                    start_date=date.today(),
+                    passengers=passengers,
+                    monthly_amount=monthly_amount,
+                    payment_status='pending',
+                    is_active=True
+                )
+
+                # Optionally create a Payment record placeholder
+                # Payment creation/integration should happen via checkout flow
+
+                request.session['booking_details'] = {
+                    'type': 'monthly',
+                    'subscription_id': str(subscription.subscription_id),
+                    'bus_number': schedule.bus.bus_number,
+                    'route': f"{schedule.route.start_point} to {schedule.route.end_point}",
+                    'start_date': subscription.start_date.strftime('%Y-%m-%d'),
+                    'end_date': subscription.end_date.strftime('%Y-%m-%d'),
+                    'seats': passengers,
+                    'monthly_amount': float(monthly_amount)
+                }
+
+                return redirect('booking_confirmation')
             
         context = {
             'schedule': schedule

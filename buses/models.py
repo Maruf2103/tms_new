@@ -137,3 +137,37 @@ class Payment(models.Model):
 
     def __str__(self):
         return f'Payment {self.transaction_id} - {self.amount}'
+
+
+class MonthlySubscription(models.Model):
+    PAYMENT_STATUS = (
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    )
+
+    subscription_id = models.UUIDField(default=uuid.uuid4, unique=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='monthly_subscriptions')
+    schedule = models.ForeignKey('Schedule', on_delete=models.CASCADE)
+    start_date = models.DateField(default=timezone.now)
+    end_date = models.DateField(blank=True, null=True)
+    passengers = models.IntegerField(default=1)
+    monthly_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='pending')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Monthly Subscription'
+        verbose_name_plural = 'Monthly Subscriptions'
+
+    def save(self, *args, **kwargs):
+        # If end_date not set, default to 30 days after start_date
+        if not self.end_date and self.start_date:
+            from datetime import timedelta
+            self.end_date = self.start_date + timedelta(days=30)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'Subscription {self.subscription_id} - {self.user.username} ({self.schedule})'
