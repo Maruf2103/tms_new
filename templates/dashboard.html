@@ -14,7 +14,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h5>Bus Schedule</h5>
-                        <p>View bus schedules</p>
+                        <p><a href="{% url 'view_schedules' %}" class="btn btn-sm btn-primary">View Schedules</a></p>
                     </div>
                 </div>
             </div>
@@ -22,7 +22,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h5>Book Bus</h5>
-                        <p>Book your bus seat</p>
+                        <p><a href="{% url 'view_schedules' %}" class="btn btn-sm btn-success">Find & Book</a></p>
                     </div>
                 </div>
             </div>
@@ -36,5 +36,51 @@
             </div>
         </div>
     </div>
+    
+    {% if upcoming_schedules %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Upcoming Schedules</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Bus</th>
+                            <th>Route</th>
+                            <th>Date</th>
+                            <th>Departure</th>
+                            <th>Seats</th>
+                            <th>Fare</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for schedule in upcoming_schedules %}
+                        <tr>
+                            <td>{{ schedule.bus.bus_number }}</td>
+                            <td>{{ schedule.route.start_point }} → {{ schedule.route.end_point }}</td>
+                            <td>{{ schedule.date }}</td>
+                            <td>{{ schedule.departure_time }}</td>
+                            <td>{{ schedule.available_seats }}</td>
+                            <td>${{ schedule.route.fare }}</td>
+                            <td>
+                                {% if schedule.available_seats > 0 and not is_authority %}
+                                <a href="{% url 'book_bus' schedule.id %}" class="btn btn-sm btn-primary">Book</a>
+                                {% elif is_authority %}
+                                <span class="text-muted">Authority view</span>
+                                {% else %}
+                                <span class="text-muted">Full</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -28,7 +28,26 @@ def sign_out(request):
     return redirect('home')
 
 def dashboard(request):
-    return render(request, 'dashboard.html')
+    # Show a simple dashboard. For students include upcoming schedules so they can
+    # quickly view and book from the dashboard.
+    upcoming_schedules = []
+    is_authority = False
+    if request.user.is_authenticated:
+        try:
+            profile = request.user.bus_user_profile
+            is_authority = profile.user_type == 'authority'
+        except Exception:
+            is_authority = False
+
+        from django.utils import timezone
+        today = timezone.now().date()
+        upcoming_schedules = Schedule.objects.filter(is_active=True, date__gte=today).select_related('bus', 'route').order_by('date', 'departure_time')[:10]
+
+    context = {
+        'upcoming_schedules': upcoming_schedules,
+        'is_authority': is_authority,
+    }
+    return render(request, 'dashboard.html', context)
 
 # Bus management views
 @login_required
