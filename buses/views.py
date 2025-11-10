@@ -199,9 +199,45 @@ def search_routes(request):
     return render(request, 'bus/search_routes.html', context)
 
 def view_schedules(request):
+    # Allow students to filter schedules by route, search term (start/end), and date
+    routes = Route.objects.filter(is_active=True).order_by('route_name')
     schedules = Schedule.objects.filter(is_active=True).select_related('bus', 'route')
+
+    # GET params
+    route_id = request.GET.get('route')
+    q = request.GET.get('q', '').strip()
+    date = request.GET.get('date', '').strip()
+
+    if route_id:
+        try:
+            schedules = schedules.filter(route_id=int(route_id))
+        except Exception:
+            pass
+
+    if q:
+        # search by start_point or end_point or route_name
+        schedules = schedules.filter(
+            models.Q(route__start_point__icontains=q) |
+            models.Q(route__end_point__icontains=q) |
+            models.Q(route__route_name__icontains=q)
+        )
+
+    if date:
+        try:
+            from django.utils import timezone
+            # accept YYYY-MM-DD
+            schedules = schedules.filter(date=date)
+        except Exception:
+            pass
+
+    schedules = schedules.order_by('date', 'departure_time')
+
     context = {
-        'schedules': schedules
+        'schedules': schedules,
+        'routes': routes,
+        'selected_route': route_id or '',
+        'q': q,
+        'selected_date': date,
     }
     return render(request, 'bus/view_schedules.html', context)
 

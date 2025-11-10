@@ -4,6 +4,26 @@
 <div class="container mt-4">
     <h2>Bus Schedules</h2>
     
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-4">
+            <select name="route" class="form-select">
+                <option value="">All routes</option>
+                {% for route in routes %}
+                <option value="{{ route.id }}" {% if route.id|stringformat:"s" == selected_route %}selected{% endif %}>{{ route.route_name }} ({{ route.start_point }} → {{ route.end_point }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <input type="text" name="q" class="form-control" placeholder="Search by start/end or route" value="{{ q }}">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="date" class="form-control" value="{{ selected_date }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+
     {% if messages %}
     <div class="messages">
         {% for message in messages %}
