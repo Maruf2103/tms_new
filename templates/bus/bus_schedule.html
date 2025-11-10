@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Bus Timetable</h2>
+    <p class="text-muted">Read-only upcoming schedules. To book, use "Find & Book".</p>
+    {% if recent_bookings %}
+    <div class="mb-3">
+        <h4>My Recent Bookings</h4>
+        <div class="card">
+            <div class="card-body p-2">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Route</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Seats</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in recent_bookings %}
+                            <tr>
+                                <td>{{ b.booking_id }}</td>
+                                <td>{{ b.schedule.route.start_point }} → {{ b.schedule.route.end_point }}</td>
+                                <td>{{ b.schedule.date }}</td>
+                                <td>{{ b.schedule.departure_time }}</td>
+                                <td>{{ b.passengers }}</td>
+                                <td>${{ b.total_amount }}</td>
+                                <td>{{ b.payment_status }}</td>
+                                <td>
+                                    <a href="{% url 'booking_details' b.booking_id %}" class="btn btn-sm btn-secondary">Manage</a>
+                                    {% if b.payment_status != 'cancelled' %}
+                                        <a href="{% url 'cancel_booking' b.booking_id %}" class="btn btn-sm btn-danger ms-1" onclick="return confirm('Cancel this booking?');">Cancel</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Bus</th>
+                    <th>Route</th>
+                    <th>Date</th>
+                    <th>Departure</th>
+                    <th>Arrival</th>
+                    <th>Available Seats</th>
+                    <th>Fare</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for schedule in schedules %}
+                <tr>
+                    <td>{{ schedule.bus.bus_number }} - {{ schedule.bus.bus_name }}</td>
+                    <td>{{ schedule.route.start_point }} → {{ schedule.route.end_point }}</td>
+                    <td>{{ schedule.date }}</td>
+                    <td>{{ schedule.departure_time }}</td>
+                    <td>{{ schedule.arrival_time }}</td>
+                    <td>{{ schedule.available_seats }}</td>
+                    <td>${{ schedule.route.fare }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No upcoming schedules</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <nav aria-label="Schedules pagination">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+            {% endif %}
+
+            <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+</div>
+{% if recent_bookings %}
+<div class="container mt-4">
+    <h4>My Recent Bookings</h4>
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Route</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Seats</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in recent_bookings %}
+                        <tr>
+                            <td>{{ b.booking_id }}</td>
+                            <td>{{ b.schedule.route.start_point }} → {{ b.schedule.route.end_point }}</td>
+                            <td>{{ b.schedule.date }}</td>
+                            <td>{{ b.schedule.departure_time }}</td>
+                            <td>{{ b.passengers }}</td>
+                            <td>${{ b.total_amount }}</td>
+                            <td>{{ b.payment_status }}</td>
+                            <td>
+                                <a href="{% url 'booking_details' b.booking_id %}" class="btn btn-sm btn-secondary">Manage</a>
+                                {% if b.payment_status != 'cancelled' %}
+                                    <a href="{% url 'cancel_booking' b.booking_id %}" class="btn btn-sm btn-danger ms-1" onclick="return confirm('Cancel this booking?');">Cancel</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -194,16 +194,15 @@ def toggle_schedule(request, schedule_id):
     return redirect('manage_schedules')
 
 def search_routes(request):
-    routes = Route.objects.filter(is_active=True)
-    context = {
-        'routes': routes
-    }
-    return render(request, 'bus/search_routes.html', context)
+    # Merged UX: redirect to view_schedules which now handles search and booking.
+    return redirect('view_schedules')
 
 def view_schedules(request):
     # Allow students to filter schedules by route, search term (start/end), and date
     routes = Route.objects.filter(is_active=True).order_by('route_name')
     schedules = Schedule.objects.filter(is_active=True).select_related('bus', 'route')
+
+    # Find & Book should not display user's existing bookings; keep booking management on the dashboard.
 
     # GET params
     route_id = request.GET.get('route')
@@ -265,6 +264,41 @@ def view_schedules(request):
         'page_obj': schedules_page,
     }
     return render(request, 'bus/view_schedules.html', context)
+
+
+def bus_schedule(request):
+    """Read-only listing of upcoming schedules for users who want to just view the bus timetable."""
+    from django.utils import timezone
+    today = timezone.now().date()
+    schedules = Schedule.objects.filter(is_active=True, date__gte=today).select_related('bus', 'route').order_by('date', 'departure_time')
+
+    # simple pagination to avoid huge pages
+    page = request.GET.get('page', 1)
+    paginator = Paginator(schedules, 20)
+    try:
+        schedules_page = paginator.page(page)
+    except PageNotAnInteger:
+        schedules_page = paginator.page(1)
+    except EmptyPage:
+        schedules_page = paginator.page(paginator.num_pages)
+
+    context = {
+        'schedules': schedules_page,
+        'page_obj': schedules_page,
+        'paginator': paginator,
+    }
+    # If user is authenticated, include their recent bookings so they can manage bookings from the Bus Schedule page
+    recent_bookings = []
+    if request.user.is_authenticated:
+        try:
+            recent_bookings = Booking.objects.filter(user=request.user).select_related('schedule__bus', 'schedule__route').order_by('-booking_date')[:8]
+        except Exception:
+            recent_bookings = []
+
+    context['recent_bookings'] = recent_bookings
+    return render(request, 'bus/bus_schedule.html', context)
+
+
 
 @login_required
 def book_bus(request, schedule_id):
@@ -341,6 +375,24 @@ def booking_confirmation(request):
 
 def select_bus(request):
     return render(request, 'bus/select_bus.html')
+
+
+@login_required
+def booking_details(request, booking_id):
+    """Show full details for a booking. User must own the booking."""
+    try:
+        booking = Booking.objects.select_related('schedule__bus', 'schedule__route').get(booking_id=booking_id)
+    except Booking.DoesNotExist:
+        messages.error(request, 'Booking not found.')
+        return redirect('dashboard')
+
+    if booking.user != request.user:
+        return HttpResponseForbidden('You do not have permission to view this booking.')
+
+    context = {
+        'booking': booking
+    }
+    return render(request, 'bus/booking_details.html', context)
 
 def make_payment(request):
     return render(request, 'bus/payment.html')

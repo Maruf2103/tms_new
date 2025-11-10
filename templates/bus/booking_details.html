@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3>Booking Details</h3>
+    <div class="card">
+        <div class="card-body">
+            <p><strong>Booking ID:</strong> {{ booking.booking_id }}</p>
+            <p><strong>User:</strong> {{ booking.user.username }}</p>
+            <p><strong>Bus:</strong> {{ booking.schedule.bus.bus_number }} - {{ booking.schedule.bus.bus_name }}</p>
+            <p><strong>Route:</strong> {{ booking.schedule.route.start_point }} → {{ booking.schedule.route.end_point }}</p>
+            <p><strong>Date:</strong> {{ booking.schedule.date }}</p>
+            <p><strong>Time:</strong> {{ booking.schedule.departure_time }} - {{ booking.schedule.arrival_time }}</p>
+            <p><strong>Passengers:</strong> {{ booking.passengers }}</p>
+            <p><strong>Total Amount:</strong> ${{ booking.total_amount }}</p>
+            <p><strong>Payment Status:</strong> {{ booking.payment_status }}</p>
+            <p><strong>Confirmed:</strong> {{ booking.is_confirmed }}</p>
+        </div>
+        <div class="card-footer">
+            {% if booking.payment_status != 'cancelled' %}
+                <a href="{% url 'cancel_booking' booking.booking_id %}" class="btn btn-danger" onclick="return confirm('Cancel this booking?');">Cancel Booking</a>
+            {% else %}
+                <span class="text-muted">This booking has been cancelled.</span>
+            {% endif %}
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary ms-2">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
