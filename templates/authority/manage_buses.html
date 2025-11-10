@@ -29,10 +29,7 @@
                             <label class=\"form-label\">Driver Name</label>
                             <input type=\"text\" class=\"form-control\" name=\"driver_name\" required>
                         </div>
-                        <div class=\"mb-3\">
-                            <label class=\"form-label\">Driver Contact</label>
-                            <input type=\"text\" class=\"form-control\" name=\"driver_contact\" required>
-                        </div>
+                        <!-- driver_contact removed for simplified student flow -->
                         <button type=\"submit\" class=\"btn btn-primary w-100\">Add Bus</button>
                     </form>
                 </div>
@@ -54,7 +51,6 @@
                                     <th>Bus Name</th>
                                     <th>Capacity</th>
                                     <th>Driver</th>
-                                    <th>Contact</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -65,7 +61,6 @@
                                     <td>{{ bus.bus_name }}</td>
                                     <td>{{ bus.capacity }}</td>
                                     <td>{{ bus.driver_name }}</td>
-                                    <td>{{ bus.driver_contact }}</td>
                                     <td>
                                         {% if bus.is_active %}
                                         <span class=\"badge bg-success\">Active</span>

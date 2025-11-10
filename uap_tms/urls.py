@@ -12,7 +12,13 @@ urlpatterns = [
     path('contact-us/', views.contact_us, name='contact_us'),
     path('bus-registration/', views.bus_registration, name='bus_registration'),
     path('search-routes/', views.search_routes, name='search_routes'),
-    path('select-bus/', views.select_bus, name='select_bus'),
-    path('make-payment/', views.make_payment, name='make_payment'),
+    path('view-schedules/', views.view_schedules, name='view_schedules'),
+    path('book-bus/<int:schedule_id>/', views.book_bus, name='book_bus'),
     path('booking-confirmation/', views.booking_confirmation, name='booking_confirmation'),
+    
+    # Admin management URLs
+    path('manage-buses/', views.manage_buses, name='manage_buses'),
+    path('manage-schedules/', views.manage_schedules, name='manage_schedules'),
+    path('edit-schedule/<int:schedule_id>/', views.edit_schedule, name='edit_schedule'),
+    path('toggle-schedule/<int:schedule_id>/', views.toggle_schedule, name='toggle_schedule'),
 ]

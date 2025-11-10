@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Book Bus Ticket</h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="messages mb-3">
+                        {% for message in messages %}
+                        <div class="alert alert-{% if message.tags %}{{ message.tags }}{% endif %}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="schedule-details mb-4">
+                        <h4>Schedule Details</h4>
+                        <table class="table">
+                            <tr>
+                                <th>Bus:</th>
+                                <td>{{ schedule.bus.bus_number }} - {{ schedule.bus.bus_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Route:</th>
+                                <td>{{ schedule.route.start_point }} to {{ schedule.route.end_point }}</td>
+                            </tr>
+                            <tr>
+                                <th>Date:</th>
+                                <td>{{ schedule.date }}</td>
+                            </tr>
+                            <tr>
+                                <th>Departure Time:</th>
+                                <td>{{ schedule.departure_time }}</td>
+                            </tr>
+                            <tr>
+                                <th>Arrival Time:</th>
+                                <td>{{ schedule.arrival_time }}</td>
+                            </tr>
+                            <tr>
+                                <th>Available Seats:</th>
+                                <td>{{ schedule.available_seats }}</td>
+                            </tr>
+                            <tr>
+                                <th>Fare per Person:</th>
+                                <td>${{ schedule.route.fare }}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="passengers">Number of Passengers:</label>
+                            <input type="number" class="form-control" id="passengers" name="passengers" 
+                                   min="1" max="{{ schedule.available_seats }}" value="1" required>
+                            <small class="form-text text-muted">Maximum {{ schedule.available_seats }} seats available</small>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                            <a href="{% url 'view_schedules' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('passengers').addEventListener('input', function(e) {
+    const seats = parseInt(e.target.value);
+    const maxSeats = {{ schedule.available_seats }};
+    if (seats > maxSeats) {
+        e.target.value = maxSeats;
+    }
+});
+</script>
+{% endblock %}

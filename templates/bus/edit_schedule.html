@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h3 class="mb-0">Edit Schedule</h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="messages mb-3">
+                        {% for message in messages %}
+                        <div class="alert alert-{% if message.tags %}{{ message.tags }}{% endif %}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            <label for="bus">Bus:</label>
+                            <select class="form-control" id="bus" name="bus" required>
+                                {% for bus in buses %}
+                                <option value="{{ bus.id }}" {% if bus.id == schedule.bus.id %}selected{% endif %}>
+                                    {{ bus.bus_number }} - {{ bus.bus_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="route">Route:</label>
+                            <select class="form-control" id="route" name="route" required>
+                                {% for route in routes %}
+                                <option value="{{ route.id }}" {% if route.id == schedule.route.id %}selected{% endif %}>
+                                    {{ route.start_point }} to {{ route.end_point }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="date">Date:</label>
+                            <input type="date" class="form-control" id="date" name="date" 
+                                   value="{{ schedule.date|date:'Y-m-d' }}" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="departure_time">Departure Time:</label>
+                            <input type="time" class="form-control" id="departure_time" name="departure_time" 
+                                   value="{{ schedule.departure_time|time:'H:i' }}" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="arrival_time">Arrival Time:</label>
+                            <input type="time" class="form-control" id="arrival_time" name="arrival_time" 
+                                   value="{{ schedule.arrival_time|time:'H:i' }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-warning">Update Schedule</button>
+                            <a href="{% url 'manage_schedules' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('departure_time').addEventListener('change', function() {
+    document.getElementById('arrival_time').min = this.value;
+});
+</script>
+{% endblock %}

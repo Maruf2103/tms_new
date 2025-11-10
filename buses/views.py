@@ -30,15 +30,213 @@ def sign_out(request):
 def dashboard(request):
     return render(request, 'dashboard.html')
 
-# Bus registration views - by Zakir
+# Bus management views
+@login_required
 def bus_registration(request):
+    if not request.user.bus_user_profile.user_type == 'authority':
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('home')
+        
+    if request.method == 'POST':
+        bus_number = request.POST.get('bus_number')
+        bus_name = request.POST.get('bus_name')
+        capacity = request.POST.get('capacity')
+        driver_name = request.POST.get('driver_name')
+
+        try:
+            bus = Bus.objects.create(
+                bus_number=bus_number,
+                bus_name=bus_name,
+                capacity=int(capacity),
+                driver_name=driver_name
+            )
+            messages.success(request, 'Bus registered successfully!')
+            return redirect('manage_buses')
+        except Exception as e:
+            messages.error(request, f'Error registering bus: {str(e)}')
+    
     return render(request, 'bus/registration.html')
 
+@login_required
+def manage_buses(request):
+    if not request.user.bus_user_profile.user_type == 'authority':
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('home')
+        
+    buses = Bus.objects.all()
+    context = {
+        'buses': buses
+    }
+    return render(request, 'bus/manage_buses.html', context)
+
+@login_required
+def manage_schedules(request):
+    if not request.user.bus_user_profile.user_type == 'authority':
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('home')
+        
+    schedules = Schedule.objects.select_related('bus', 'route').all()
+    buses = Bus.objects.filter(is_active=True)
+    routes = Route.objects.all()
+    
+    if request.method == 'POST':
+        bus_id = request.POST.get('bus')
+        route_id = request.POST.get('route')
+        departure_time = request.POST.get('departure_time')
+        arrival_time = request.POST.get('arrival_time')
+        date = request.POST.get('date')
+        
+        try:
+            bus = Bus.objects.get(id=bus_id)
+            route = Route.objects.get(id=route_id)
+            
+            Schedule.objects.create(
+                bus=bus,
+                route=route,
+                departure_time=departure_time,
+                arrival_time=arrival_time,
+                date=date,
+                available_seats=bus.capacity
+            )
+            messages.success(request, 'Schedule created successfully!')
+        except Exception as e:
+            messages.error(request, f'Error creating schedule: {str(e)}')
+    
+    context = {
+        'schedules': schedules,
+        'buses': buses,
+        'routes': routes
+    }
+    return render(request, 'bus/manage_schedules.html', context)
+
+@login_required
+def edit_schedule(request, schedule_id):
+    if not request.user.bus_user_profile.user_type == 'authority':
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('home')
+        
+    try:
+        schedule = Schedule.objects.select_related('bus', 'route').get(id=schedule_id)
+        buses = Bus.objects.filter(is_active=True)
+        routes = Route.objects.all()
+        
+        if request.method == 'POST':
+            bus_id = request.POST.get('bus')
+            route_id = request.POST.get('route')
+            departure_time = request.POST.get('departure_time')
+            arrival_time = request.POST.get('arrival_time')
+            date = request.POST.get('date')
+            
+            try:
+                bus = Bus.objects.get(id=bus_id)
+                route = Route.objects.get(id=route_id)
+                
+                schedule.bus = bus
+                schedule.route = route
+                schedule.departure_time = departure_time
+                schedule.arrival_time = arrival_time
+                schedule.date = date
+                schedule.save()
+                
+                messages.success(request, 'Schedule updated successfully!')
+                return redirect('manage_schedules')
+            except Exception as e:
+                messages.error(request, f'Error updating schedule: {str(e)}')
+        
+        context = {
+            'schedule': schedule,
+            'buses': buses,
+            'routes': routes
+        }
+        return render(request, 'bus/edit_schedule.html', context)
+        
+    except Schedule.DoesNotExist:
+        messages.error(request, 'Schedule not found.')
+        return redirect('manage_schedules')
+
+@login_required
+def toggle_schedule(request, schedule_id):
+    if not request.user.bus_user_profile.user_type == 'authority':
+        messages.error(request, 'You do not have permission to perform this action.')
+        return redirect('home')
+        
+    try:
+        schedule = Schedule.objects.get(id=schedule_id)
+        schedule.is_active = not schedule.is_active
+        schedule.save()
+        
+        status = 'activated' if schedule.is_active else 'deactivated'
+        messages.success(request, f'Schedule {status} successfully!')
+    except Schedule.DoesNotExist:
+        messages.error(request, 'Schedule not found.')
+    
+    return redirect('manage_schedules')
+
 def search_routes(request):
-    return render(request, 'bus/search_routes.html')
+    routes = Route.objects.filter(is_active=True)
+    context = {
+        'routes': routes
+    }
+    return render(request, 'bus/search_routes.html', context)
+
+def view_schedules(request):
+    schedules = Schedule.objects.filter(is_active=True).select_related('bus', 'route')
+    context = {
+        'schedules': schedules
+    }
+    return render(request, 'bus/view_schedules.html', context)
+
+@login_required
+def book_bus(request, schedule_id):
+    try:
+        schedule = Schedule.objects.select_related('bus', 'route').get(id=schedule_id, is_active=True)
+        
+        if request.method == 'POST':
+            passengers = int(request.POST.get('passengers', 1))
+            
+            if passengers > schedule.available_seats:
+                messages.error(request, 'Not enough seats available.')
+                return redirect('view_schedules')
+            
+            # Calculate total amount
+            total_amount = schedule.route.fare * passengers
+            
+            # Create booking
+            booking = Booking.objects.create(
+                user=request.user,
+                schedule=schedule,
+                passengers=passengers,
+                total_amount=total_amount
+            )
+            
+            # Update available seats
+            schedule.available_seats -= passengers
+            schedule.save()
+            
+            # Store booking details in session
+            request.session['booking_details'] = {
+                'booking_id': str(booking.booking_id),
+                'bus_number': schedule.bus.bus_number,
+                'route': f"{schedule.route.start_point} to {schedule.route.end_point}",
+                'date': schedule.date.strftime('%Y-%m-%d'),
+                'time': schedule.departure_time.strftime('%H:%M'),
+                'seats': passengers,
+                'total_fare': float(total_amount)
+            }
+            
+            return redirect('booking_confirmation')
+            
+        context = {
+            'schedule': schedule
+        }
+        return render(request, 'bus/book_bus.html', context)
+        
+    except Schedule.DoesNotExist:
+        messages.error(request, 'Schedule not found or inactive.')
+        return redirect('view_schedules')
 
 def booking_confirmation(request):
-    # Get the booking details from session or POST data
+    # Get the booking details from session
     booking = request.session.get('booking_details', {})
     
     if not booking:
@@ -48,6 +246,12 @@ def booking_confirmation(request):
     context = {
         'booking': booking
     }
+    
+    # Clear the booking details from session after displaying
+    if 'booking_details' in request.session:
+        del request.session['booking_details']
+        
+    return render(request, 'bus/booking_confirmation.html', context)
     
     # Clear the booking details from session after displaying
     if 'booking_details' in request.session:
@@ -231,7 +435,6 @@ def manage_buses(request):
         bus_name = request.POST.get('bus_name')
         capacity = request.POST.get('capacity')
         driver_name = request.POST.get('driver_name')
-        driver_contact = request.POST.get('driver_contact')
         
         if Bus.objects.filter(bus_number=bus_number).exists():
             messages.error(request, 'Bus with this number already exists!')
@@ -241,7 +444,6 @@ def manage_buses(request):
                 bus_name=bus_name,
                 capacity=capacity,
                 driver_name=driver_name,
-                driver_contact=driver_contact
             )
             messages.success(request, 'Bus added successfully!')
         

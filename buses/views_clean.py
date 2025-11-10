@@ -184,8 +184,7 @@ def manage_buses(request):
         bus_name = request.POST.get('bus_name')
         capacity = request.POST.get('capacity')
         driver_name = request.POST.get('driver_name')
-        driver_contact = request.POST.get('driver_contact')
-        
+
         if Bus.objects.filter(bus_number=bus_number).exists():
             messages.error(request, 'Bus with this number already exists!')
         else:
@@ -194,10 +193,9 @@ def manage_buses(request):
                 bus_name=bus_name,
                 capacity=capacity,
                 driver_name=driver_name,
-                driver_contact=driver_contact
             )
             messages.success(request, 'Bus added successfully!')
-        
+
         return redirect('manage_buses')
     
     return render(request, 'authority/manage_buses.html', {'buses': buses})

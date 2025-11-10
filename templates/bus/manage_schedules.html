@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Manage Bus Schedules</h2>
+    
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags %}{{ message.tags }}{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Add New Schedule Form -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Add New Schedule</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="bus">Bus:</label>
+                            <select class="form-control" id="bus" name="bus" required>
+                                <option value="">Select Bus</option>
+                                {% for bus in buses %}
+                                <option value="{{ bus.id }}">{{ bus.bus_number }} - {{ bus.bus_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="route">Route:</label>
+                            <select class="form-control" id="route" name="route" required>
+                                <option value="">Select Route</option>
+                                {% for route in routes %}
+                                <option value="{{ route.id }}">{{ route.start_point }} to {{ route.end_point }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="date">Date:</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="departure_time">Departure Time:</label>
+                            <input type="time" class="form-control" id="departure_time" name="departure_time" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="arrival_time">Arrival Time:</label>
+                            <input type="time" class="form-control" id="arrival_time" name="arrival_time" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary form-control">Add Schedule</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Existing Schedules Table -->
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">Existing Schedules</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Bus</th>
+                            <th>Route</th>
+                            <th>Date</th>
+                            <th>Departure</th>
+                            <th>Arrival</th>
+                            <th>Available Seats</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for schedule in schedules %}
+                        <tr>
+                            <td>{{ schedule.bus.bus_number }}</td>
+                            <td>{{ schedule.route.start_point }} to {{ schedule.route.end_point }}</td>
+                            <td>{{ schedule.date }}</td>
+                            <td>{{ schedule.departure_time }}</td>
+                            <td>{{ schedule.arrival_time }}</td>
+                            <td>{{ schedule.available_seats }}</td>
+                            <td>
+                                {% if schedule.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'edit_schedule' schedule.id %}" class="btn btn-sm btn-warning">Edit</a>
+                                {% if schedule.is_active %}
+                                <a href="{% url 'toggle_schedule' schedule.id %}" class="btn btn-sm btn-danger">Deactivate</a>
+                                {% else %}
+                                <a href="{% url 'toggle_schedule' schedule.id %}" class="btn btn-sm btn-success">Activate</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">No schedules found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('date').min = new Date().toISOString().split('T')[0];
+
+document.getElementById('departure_time').addEventListener('change', function() {
+    document.getElementById('arrival_time').min = this.value;
+});
+</script>
+{% endblock %}
