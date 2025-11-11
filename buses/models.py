@@ -129,6 +129,8 @@ class MonthlySubscription(models.Model):
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='pending')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    # Whether seats on the related schedule have been reserved for this subscription
+    seats_reserved = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'Monthly Subscription'

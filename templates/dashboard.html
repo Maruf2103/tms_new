@@ -83,51 +83,7 @@
     </div>
     {% endif %}
     
-    {% if my_bookings %}
-    <div class="card mt-4">
-        <div class="card-header">
-            <h5>My Recent Bookings</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Booking ID</th>
-                            <th>Route</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Seats</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for b in my_bookings %}
-                        <tr>
-                            <td>{{ b.booking_id }}</td>
-                            <td>{{ b.schedule.route.start_point }} → {{ b.schedule.route.end_point }}</td>
-                            <td>{{ b.schedule.date }}</td>
-                            <td>{{ b.schedule.departure_time }}</td>
-                            <td>{{ b.passengers }}</td>
-                            <td>${{ b.total_amount }}</td>
-                            <td>{{ b.payment_status }}</td>
-                            <td>
-                                {% if b.payment_status != 'cancelled' %}
-                                <a href="{% url 'cancel_booking' b.booking_id %}" class="btn btn-sm btn-danger" onclick="return confirm('Cancel this booking?');">Cancel</a>
-                                {% else %}
-                                <span class="text-muted">Cancelled</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% endif %}
+    {# Removed My Recent Bookings section per request - users will manage bookings from the Bookings/Booking Details pages #}
 
     {% if monthly_subscriptions %}
     <div class="card mt-4">

@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from .models import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
 from django.http import HttpResponseForbidden, JsonResponse
 from decimal import Decimal
 from datetime import date, timedelta
@@ -45,9 +46,15 @@ def dashboard(request):
             is_authority = False
 
         from django.utils import timezone
-        # Use localdate() so the date comparison reflects the server's local date
-        today = timezone.localdate()
-        upcoming_schedules = Schedule.objects.filter(is_active=True, date__gte=today).select_related('bus', 'route').order_by('date', 'departure_time')[:10]
+        # Use local timezone now so we only show schedules that haven't departed yet today
+        now = timezone.localtime()
+        today = now.date()
+        time_now = now.time()
+        upcoming_schedules = Schedule.objects.filter(
+            is_active=True
+        ).filter(
+            Q(date__gt=today) | (Q(date=today) & Q(departure_time__gte=time_now))
+        ).select_related('bus', 'route').order_by('date', 'departure_time')[:10]
 
     context = {
         'upcoming_schedules': upcoming_schedules,
@@ -292,8 +299,12 @@ def view_schedules(request):
 def bus_schedule(request):
     """Read-only listing of upcoming schedules for users who want to just view the bus timetable."""
     from django.utils import timezone
-    today = timezone.localdate()
-    schedules = Schedule.objects.filter(is_active=True, date__gte=today).select_related('bus', 'route').order_by('date', 'departure_time')
+    now = timezone.localtime()
+    today = now.date()
+    time_now = now.time()
+    schedules = Schedule.objects.filter(is_active=True).filter(
+        Q(date__gt=today) | (Q(date=today) & Q(departure_time__gte=time_now))
+    ).select_related('bus', 'route').order_by('date', 'departure_time')
 
     # simple pagination to avoid huge pages
     page = request.GET.get('page', 1)
@@ -311,14 +322,26 @@ def bus_schedule(request):
         'paginator': paginator,
     }
     # If user is authenticated, include their recent bookings so they can manage bookings from the Bus Schedule page
-    recent_bookings = []
+    recent_activities = []
     if request.user.is_authenticated:
         try:
-            recent_bookings = Booking.objects.filter(user=request.user).select_related('schedule__bus', 'schedule__route').order_by('-booking_date')[:8]
-        except Exception:
-            recent_bookings = []
+            # Include both recent Bookings and MonthlySubscriptions so students see monthly purchases too
+            bookings_qs = Booking.objects.select_related('schedule__bus', 'schedule__route').filter(user=request.user).exclude(payment_status='cancelled')
+            subs_qs = MonthlySubscription.objects.select_related('schedule__bus', 'schedule__route').filter(user=request.user).exclude(payment_status='cancelled')
 
-    context['recent_bookings'] = recent_bookings
+            activities = []
+            for b in bookings_qs:
+                activities.append({'type': 'booking', 'ts': b.booking_date, 'obj': b})
+            for s in subs_qs:
+                activities.append({'type': 'subscription', 'ts': s.created_at, 'obj': s})
+
+            # sort by timestamp desc and take top 8
+            activities.sort(key=lambda x: x['ts'] or 0, reverse=True)
+            recent_activities = activities[:8]
+        except Exception:
+            recent_activities = []
+
+    context['recent_activities'] = recent_activities
     return render(request, 'bus/bus_schedule.html', context)
 
 
@@ -508,6 +531,17 @@ def process_checkout(request):
 
             sub.payment_status = 'completed'
             sub.is_active = True
+            # Reserve seats on the schedule if not already reserved
+            try:
+                if not getattr(sub, 'seats_reserved', False):
+                    sched = sub.schedule
+                    sched.available_seats = max(0, sched.available_seats - (sub.passengers or 0))
+                    sched.save()
+                    sub.seats_reserved = True
+            except Exception:
+                # If anything goes wrong reserving seats, proceed but log in server
+                pass
+
             sub.save()
 
             request.session['booking_details'] = {
@@ -591,6 +625,16 @@ def cancel_subscription(request, subscription_id):
 
     if subscription.user != request.user:
         return HttpResponseForbidden('You cannot cancel this subscription.')
+
+    # restore seats if we had reserved them for this subscription
+    try:
+        if getattr(subscription, 'seats_reserved', False):
+            sched = subscription.schedule
+            sched.available_seats = sched.available_seats + (subscription.passengers or 0)
+            sched.save()
+            subscription.seats_reserved = False
+    except Exception:
+        pass
 
     # deactivate subscription
     subscription.is_active = False
@@ -717,20 +761,18 @@ def dashboard(request):
     # upcoming schedules for quick booking (students only)
     upcoming_schedules = []
     from django.utils import timezone
-    today = timezone.localdate()
+    now = timezone.localtime()
+    today = now.date()
+    time_now = now.time()
     if not is_authority:
-        upcoming_schedules = Schedule.objects.filter(is_active=True, date__gte=today).select_related('bus', 'route').order_by('date', 'departure_time')[:10]
-
-    # student's recent bookings
-    my_bookings = []
-    if not is_authority:
-        my_bookings = Booking.objects.select_related('schedule', 'schedule__route', 'schedule__bus').filter(user=request.user).order_by('-booking_date')[:10]
+        upcoming_schedules = Schedule.objects.filter(is_active=True).filter(
+            Q(date__gt=today) | (Q(date=today) & Q(departure_time__gte=time_now))
+        ).select_related('bus', 'route').order_by('date', 'departure_time')[:10]
 
     context = {
         'user_profile': user_profile,
         'is_authority': is_authority,
         'upcoming_schedules': upcoming_schedules,
-        'my_bookings': my_bookings,
     }
     return render(request, 'dashboard.html', context)
 

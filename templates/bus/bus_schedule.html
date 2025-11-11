@@ -4,16 +4,18 @@
 <div class="container mt-4">
     <h2>Bus Timetable</h2>
     <p class="text-muted">Read-only upcoming schedules. To book, use "Find & Book".</p>
-    {% if recent_bookings %}
+
+    {% if recent_activities %}
     <div class="mb-3">
-        <h4>My Recent Bookings</h4>
+        <h4>My Recent Bookings & Subscriptions</h4>
         <div class="card">
             <div class="card-body p-2">
                 <div class="table-responsive">
                     <table class="table table-sm">
                         <thead>
                             <tr>
-                                <th>Booking ID</th>
+                                <th>Type</th>
+                                <th>ID</th>
                                 <th>Route</th>
                                 <th>Date</th>
                                 <th>Time</th>
@@ -24,22 +26,44 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for b in recent_bookings %}
-                            <tr>
-                                <td>{{ b.booking_id }}</td>
-                                <td>{{ b.schedule.route.start_point }} → {{ b.schedule.route.end_point }}</td>
-                                <td>{{ b.schedule.date }}</td>
-                                <td>{{ b.schedule.departure_time }}</td>
-                                <td>{{ b.passengers }}</td>
-                                <td>${{ b.total_amount }}</td>
-                                <td>{{ b.payment_status }}</td>
-                                <td>
-                                    <a href="{% url 'booking_details' b.booking_id %}" class="btn btn-sm btn-secondary">Manage</a>
-                                    {% if b.payment_status != 'cancelled' %}
-                                        <a href="{% url 'cancel_booking' b.booking_id %}" class="btn btn-sm btn-danger ms-1" onclick="return confirm('Cancel this booking?');">Cancel</a>
-                                    {% endif %}
-                                </td>
-                            </tr>
+                            {% for act in recent_activities %}
+                                {% if act.type == 'booking' %}
+                                    {% with b=act.obj %}
+                                    <tr>
+                                        <td>Booking</td>
+                                        <td>{{ b.booking_id }}</td>
+                                        <td>{{ b.schedule.route.start_point }} → {{ b.schedule.route.end_point }}</td>
+                                        <td>{{ b.schedule.date }}</td>
+                                        <td>{{ b.schedule.departure_time }}</td>
+                                        <td>{{ b.passengers }}</td>
+                                        <td>${{ b.total_amount }}</td>
+                                        <td>{{ b.payment_status }}</td>
+                                        <td>
+                                            <a href="{% url 'booking_details' b.booking_id %}" class="btn btn-sm btn-secondary">Manage</a>
+                                            <a href="{% url 'cancel_booking' b.booking_id %}" class="btn btn-sm btn-danger ms-1" onclick="return confirm('Cancel this booking?');">Cancel</a>
+                                        </td>
+                                    </tr>
+                                    {% endwith %}
+                                {% else %}
+                                    {% with s=act.obj %}
+                                    <tr>
+                                        <td>Subscription</td>
+                                        <td>{{ s.subscription_id }}</td>
+                                        <td>{{ s.schedule.route.start_point }} → {{ s.schedule.route.end_point }}</td>
+                                        <td>{{ s.start_date }} – {{ s.end_date }}</td>
+                                        <td>{{ s.schedule.departure_time }}</td>
+                                        <td>{{ s.passengers }}</td>
+                                        <td>${{ s.monthly_amount }}</td>
+                                        <td>{{ s.payment_status }} {% if not s.is_active %}(Inactive){% endif %}</td>
+                                        <td>
+                                            <a href="{% url 'subscription_detail' s.subscription_id %}" class="btn btn-sm btn-secondary">View</a>
+                                            {% if s.is_active %}
+                                            <a href="{% url 'cancel_subscription' s.subscription_id %}" class="btn btn-sm btn-danger ms-1" onclick="return confirm('Cancel this subscription?');">Cancel</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endwith %}
+                                {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>
@@ -101,48 +125,4 @@
     </nav>
 
 </div>
-{% if recent_bookings %}
-<div class="container mt-4">
-    <h4>My Recent Bookings</h4>
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Booking ID</th>
-                            <th>Route</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Seats</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for b in recent_bookings %}
-                        <tr>
-                            <td>{{ b.booking_id }}</td>
-                            <td>{{ b.schedule.route.start_point }} → {{ b.schedule.route.end_point }}</td>
-                            <td>{{ b.schedule.date }}</td>
-                            <td>{{ b.schedule.departure_time }}</td>
-                            <td>{{ b.passengers }}</td>
-                            <td>${{ b.total_amount }}</td>
-                            <td>{{ b.payment_status }}</td>
-                            <td>
-                                <a href="{% url 'booking_details' b.booking_id %}" class="btn btn-sm btn-secondary">Manage</a>
-                                {% if b.payment_status != 'cancelled' %}
-                                    <a href="{% url 'cancel_booking' b.booking_id %}" class="btn btn-sm btn-danger ms-1" onclick="return confirm('Cancel this booking?');">Cancel</a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
 {% endblock %}
