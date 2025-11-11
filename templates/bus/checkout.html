@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card">
+    <div class="card-header bg-primary text-white">
+      <h3 class="mb-0">Checkout</h3>
+    </div>
+    <div class="card-body">
+      {% if booking %}
+        <h4>Order Summary</h4>
+        <dl class="row">
+          {% if booking.type == 'single' %}
+            <dt class="col-sm-3">Bus</dt><dd class="col-sm-9">{{ booking.bus_number }}</dd>
+            <dt class="col-sm-3">Route</dt><dd class="col-sm-9">{{ booking.route }}</dd>
+            <dt class="col-sm-3">Date / Time</dt><dd class="col-sm-9">{{ booking.date }} {{ booking.time }}</dd>
+            <dt class="col-sm-3">Seats</dt><dd class="col-sm-9">{{ booking.seats }}</dd>
+            <dt class="col-sm-3">Amount</dt><dd class="col-sm-9">${{ booking.total_fare }}</dd>
+          {% else %}
+            <dt class="col-sm-3">Subscription</dt><dd class="col-sm-9">Monthly Package</dd>
+            <dt class="col-sm-3">Bus</dt><dd class="col-sm-9">{{ booking.bus_number }}</dd>
+            <dt class="col-sm-3">Route</dt><dd class="col-sm-9">{{ booking.route }}</dd>
+            <dt class="col-sm-3">Period</dt><dd class="col-sm-9">{{ booking.start_date }} to {{ booking.end_date }}</dd>
+            <dt class="col-sm-3">Seats/Trip</dt><dd class="col-sm-9">{{ booking.seats }}</dd>
+            <dt class="col-sm-3">Estimated Monthly Amount</dt><dd class="col-sm-9">${{ booking.monthly_amount }}</dd>
+          {% endif %}
+        </dl>
+
+        <form method="post" action="{% url 'process_checkout' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="payment_method" class="form-label">Payment Method</label>
+            <select id="payment_method" name="payment_method" class="form-control">
+              <option value="bkash">bKash</option>
+              <option value="card">Credit / Debit Card</option>
+              <option value="wallet">Wallet</option>
+            </select>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success">Pay Now</button>
+            <a href="{% url 'view_schedules' %}" class="btn btn-secondary">Cancel</a>
+          </div>
+        </form>
+
+      {% else %}
+        <div class="alert alert-warning">No order found in session. Please start booking again.</div>
+        <a href="{% url 'view_schedules' %}" class="btn btn-primary">Browse Schedules</a>
+      {% endif %}
+    </div>
+  </div>
+  </div>
+</div>
+{% endblock %}

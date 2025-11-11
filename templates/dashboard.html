@@ -128,5 +128,48 @@
         </div>
     </div>
     {% endif %}
+
+    {% if monthly_subscriptions %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>My Monthly Subscriptions</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Subscription ID</th>
+                            <th>Route</th>
+                            <th>Period</th>
+                            <th>Seats</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in monthly_subscriptions %}
+                        <tr>
+                            <td>{{ s.subscription_id }}</td>
+                            <td>{{ s.schedule.route.start_point }} → {{ s.schedule.route.end_point }}</td>
+                            <td>{{ s.start_date }} – {{ s.end_date }}</td>
+                            <td>{{ s.passengers }}</td>
+                            <td>${{ s.monthly_amount }}</td>
+                            <td>{{ s.payment_status }} {% if not s.is_active %}(Inactive){% endif %}</td>
+                            <td>
+                                <a href="{% url 'subscription_detail' s.subscription_id %}" class="btn btn-sm btn-primary">View</a>
+                                {% if s.is_active %}
+                                <a href="{% url 'cancel_subscription' s.subscription_id %}" class="btn btn-sm btn-danger" onclick="return confirm('Cancel this subscription?');">Cancel</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

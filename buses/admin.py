@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Bus, Route, Schedule, Booking, Payment, UserProfile
+from .models import Bus, Route, Schedule, Booking, Payment, UserProfile, MonthlySubscription
 
 @admin.register(Bus)
 class BusAdmin(admin.ModelAdmin):
@@ -64,3 +64,16 @@ class UserProfileAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('user')
+
+
+@admin.register(MonthlySubscription)
+class MonthlySubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('subscription_id', 'user', 'schedule', 'start_date', 'end_date', 'passengers', 'monthly_amount', 'payment_status', 'is_active', 'created_at')
+    list_filter = ('payment_status', 'is_active', 'start_date')
+    search_fields = ('subscription_id', 'user__username', 'schedule__bus__bus_number')
+    date_hierarchy = 'created_at'
+    readonly_fields = ('subscription_id',)
+    list_per_page = 20
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user', 'schedule', 'schedule__bus', 'schedule__route')

@@ -15,8 +15,12 @@ urlpatterns = [
     path('view-schedules/', views.view_schedules, name='view_schedules'),
     path('bus-schedule/', views.bus_schedule, name='bus_schedule'),
     path('book-bus/<int:schedule_id>/', views.book_bus, name='book_bus'),
+    path('checkout/', views.checkout, name='checkout'),
+    path('process-checkout/', views.process_checkout, name='process_checkout'),
     path('booking-confirmation/', views.booking_confirmation, name='booking_confirmation'),
     path('cancel-booking/<uuid:booking_id>/', views.cancel_booking, name='cancel_booking'),
+    path('cancel-subscription/<uuid:subscription_id>/', views.cancel_subscription, name='cancel_subscription'),
+    path('subscription/<uuid:subscription_id>/', views.subscription_detail, name='subscription_detail'),
     path('booking/<uuid:booking_id>/', views.booking_details, name='booking_details'),
     
     # Admin management URLs

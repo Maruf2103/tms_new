@@ -8,29 +8,50 @@
         </div>
         <div class="card-body">
             {% if booking %}
-                <h4 class="text-success mb-4">Your booking has been confirmed!</h4>
-                
-                <div class="booking-details">
-                    {% if booking.bus_number %}
-                    <p><strong>Bus Number:</strong> {{ booking.bus_number }}</p>
-                    {% endif %}
-                    
-                    {% if booking.route %}
-                    <p><strong>Route:</strong> {{ booking.route }}</p>
-                    {% endif %}
-                    
-                    {% if booking.date %}
-                    <p><strong>Date:</strong> {{ booking.date }}</p>
-                    {% endif %}
-                    
-                    {% if booking.seats %}
-                    <p><strong>Seats:</strong> {{ booking.seats }}</p>
-                    {% endif %}
-                    
-                    {% if booking.total_fare %}
-                    <p><strong>Total Fare:</strong> ${{ booking.total_fare }}</p>
-                    {% endif %}
-                </div>
+                {% if booking.type == 'single' %}
+                    <h4 class="text-success mb-4">Your booking has been confirmed!</h4>
+
+                    <div class="booking-details">
+                        {% if booking.bus_number %}
+                        <p><strong>Bus Number:</strong> {{ booking.bus_number }}</p>
+                        {% endif %}
+
+                        {% if booking.route %}
+                        <p><strong>Route:</strong> {{ booking.route }}</p>
+                        {% endif %}
+
+                        {% if booking.date %}
+                        <p><strong>Date:</strong> {{ booking.date }}</p>
+                        {% endif %}
+
+                        {% if booking.time %}
+                        <p><strong>Time:</strong> {{ booking.time }}</p>
+                        {% endif %}
+
+                        {% if booking.seats %}
+                        <p><strong>Seats:</strong> {{ booking.seats }}</p>
+                        {% endif %}
+
+                        {% if booking.total_fare or booking.total_fare == 0 %}
+                        <p><strong>Total Fare:</strong> ${{ booking.total_fare }}</p>
+                        {% endif %}
+                    </div>
+                {% elif booking.type == 'monthly' %}
+                    <h4 class="text-success mb-4">Monthly Subscription Created</h4>
+
+                    <div class="booking-details">
+                        <p><strong>Subscription ID:</strong> {{ booking.subscription_id }}</p>
+                        <p><strong>Bus:</strong> {{ booking.bus_number }}</p>
+                        <p><strong>Route:</strong> {{ booking.route }}</p>
+                        <p><strong>Start Date:</strong> {{ booking.start_date }}</p>
+                        <p><strong>End Date:</strong> {{ booking.end_date }}</p>
+                        <p><strong>Seats per Trip:</strong> {{ booking.seats }}</p>
+                        <p><strong>Estimated Monthly Price:</strong> ${{ booking.monthly_amount }}</p>
+                    </div>
+                {% else %}
+                    <h4 class="mb-4">Booking Information</h4>
+                    <pre>{{ booking }}</pre>
+                {% endif %}
                 
                 <div class="mt-4">
                     <p class="text-muted">A confirmation email has been sent to your registered email address.</p>

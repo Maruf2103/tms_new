@@ -124,17 +124,18 @@ class Command(BaseCommand):
         # Get all buses and routes
         buses = Bus.objects.all()
         routes = Route.objects.all()
-        
+
         # Create schedules for next 7 days
-        today = timezone.now().date()
-        
+        # Use localdate to align schedule generation with server local date/time
+        today = timezone.localdate()
+
         for day_offset in range(7):
             schedule_date = today + timedelta(days=day_offset)
-            
+
             for route in routes:
                 for i, (departure, arrival) in enumerate(schedule_times):
                     bus = buses[i % len(buses)]
-                    
+
                     # Create schedule if it doesn't exist
                     Schedule.objects.get_or_create(
                         bus=bus,

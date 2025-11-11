@@ -8,6 +8,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponseForbidden, JsonResponse
 from decimal import Decimal
 from datetime import date, timedelta
+import uuid
 
 User = get_user_model()
 
@@ -44,13 +45,23 @@ def dashboard(request):
             is_authority = False
 
         from django.utils import timezone
-        today = timezone.now().date()
+        # Use localdate() so the date comparison reflects the server's local date
+        today = timezone.localdate()
         upcoming_schedules = Schedule.objects.filter(is_active=True, date__gte=today).select_related('bus', 'route').order_by('date', 'departure_time')[:10]
 
     context = {
         'upcoming_schedules': upcoming_schedules,
         'is_authority': is_authority,
     }
+    # include user's monthly subscriptions if authenticated
+    monthly_subscriptions = []
+    if request.user.is_authenticated:
+        try:
+            monthly_subscriptions = MonthlySubscription.objects.filter(user=request.user, is_active=True).select_related('schedule__bus', 'schedule__route')
+        except Exception:
+            monthly_subscriptions = []
+
+    context['monthly_subscriptions'] = monthly_subscriptions
     return render(request, 'dashboard.html', context)
 
 # Bus management views
@@ -227,10 +238,20 @@ def view_schedules(request):
 
     if date:
         try:
-            from django.utils import timezone
-            # accept YYYY-MM-DD
+            # accept YYYY-MM-DD from GET
             schedules = schedules.filter(date=date)
         except Exception:
+            pass
+    else:
+        # No date provided — default to server local 'today' so users see today's schedules first
+        try:
+            from django.utils import timezone
+            today = timezone.localdate()
+            schedules = schedules.filter(date=today)
+            # set the date string so the template's date field reflects the default
+            date = str(today)
+        except Exception:
+            # if timezone fails for some reason, fall back to no filtering
             pass
 
     # time range filter: morning/afternoon/evening
@@ -271,7 +292,7 @@ def view_schedules(request):
 def bus_schedule(request):
     """Read-only listing of upcoming schedules for users who want to just view the bus timetable."""
     from django.utils import timezone
-    today = timezone.now().date()
+    today = timezone.localdate()
     schedules = Schedule.objects.filter(is_active=True, date__gte=today).select_related('bus', 'route').order_by('date', 'departure_time')
 
     # simple pagination to avoid huge pages
@@ -343,7 +364,7 @@ def book_bus(request, schedule_id):
                     'total_fare': float(total_amount)
                 }
 
-                return redirect('booking_confirmation')
+                return redirect('checkout')
 
             elif package == 'monthly':
                 # Monthly subscription: user subscribes to this schedule for ~30 days
@@ -378,7 +399,7 @@ def book_bus(request, schedule_id):
                     'monthly_amount': float(monthly_amount)
                 }
 
-                return redirect('booking_confirmation')
+                return redirect('checkout')
             
         context = {
             'schedule': schedule
@@ -412,6 +433,102 @@ def booking_confirmation(request):
         del request.session['booking_details']
         
     return render(request, 'bus/booking_confirmation.html', context)
+
+
+@login_required
+def checkout(request):
+    # Display checkout page based on session booking_details
+    booking = request.session.get('booking_details')
+    if not booking:
+        messages.error(request, 'No booking in progress.')
+        return redirect('view_schedules')
+
+    return render(request, 'bus/checkout.html', {'booking': booking})
+
+
+@login_required
+def process_checkout(request):
+    if request.method != 'POST':
+        return redirect('view_schedules')
+
+    booking = request.session.get('booking_details')
+    if not booking:
+        messages.error(request, 'No booking found for payment.')
+        return redirect('view_schedules')
+
+    payment_method = request.POST.get('payment_method', 'bkash')
+    transaction_id = uuid.uuid4().hex
+
+    # Process single booking payment
+    if booking.get('type') == 'single':
+        try:
+            b = Booking.objects.get(booking_id=booking.get('booking_id'))
+            payment = Payment.objects.create(
+                booking=b,
+                subscription=None,
+                transaction_id=transaction_id,
+                amount=b.total_amount,
+                payment_method=payment_method,
+                status='completed'
+            )
+
+            b.payment_status = 'completed'
+            b.is_confirmed = True
+            b.save()
+
+            # update session booking details for confirmation
+            request.session['booking_details'] = {
+                'type': 'single',
+                'booking_id': str(b.booking_id),
+                'bus_number': booking.get('bus_number'),
+                'route': booking.get('route'),
+                'date': booking.get('date'),
+                'time': booking.get('time'),
+                'seats': booking.get('seats'),
+                'total_fare': float(b.total_amount),
+                'transaction_id': transaction_id
+            }
+
+            return redirect('booking_confirmation')
+        except Booking.DoesNotExist:
+            messages.error(request, 'Booking not found for payment.')
+            return redirect('view_schedules')
+
+    elif booking.get('type') == 'monthly':
+        try:
+            sub = MonthlySubscription.objects.get(subscription_id=booking.get('subscription_id'))
+            payment = Payment.objects.create(
+                booking=None,
+                subscription=sub,
+                transaction_id=transaction_id,
+                amount=sub.monthly_amount,
+                payment_method=payment_method,
+                status='completed'
+            )
+
+            sub.payment_status = 'completed'
+            sub.is_active = True
+            sub.save()
+
+            request.session['booking_details'] = {
+                'type': 'monthly',
+                'subscription_id': str(sub.subscription_id),
+                'bus_number': booking.get('bus_number'),
+                'route': booking.get('route'),
+                'start_date': booking.get('start_date'),
+                'end_date': booking.get('end_date'),
+                'seats': booking.get('seats'),
+                'monthly_amount': float(sub.monthly_amount),
+                'transaction_id': transaction_id
+            }
+
+            return redirect('booking_confirmation')
+        except MonthlySubscription.DoesNotExist:
+            messages.error(request, 'Subscription not found for payment.')
+            return redirect('view_schedules')
+
+    messages.error(request, 'Unable to process payment.')
+    return redirect('view_schedules')
 
 def select_bus(request):
     return render(request, 'bus/select_bus.html')
@@ -461,6 +578,44 @@ def cancel_booking(request, booking_id):
 
     messages.success(request, 'Booking cancelled and seats restored.')
     return redirect('dashboard')
+
+
+@login_required
+def cancel_subscription(request, subscription_id):
+    """Allow student to cancel their monthly subscription"""
+    try:
+        subscription = MonthlySubscription.objects.get(subscription_id=subscription_id)
+    except MonthlySubscription.DoesNotExist:
+        messages.error(request, 'Subscription not found.')
+        return redirect('dashboard')
+
+    if subscription.user != request.user:
+        return HttpResponseForbidden('You cannot cancel this subscription.')
+
+    # deactivate subscription
+    subscription.is_active = False
+    subscription.payment_status = 'cancelled'
+    subscription.save()
+
+    messages.success(request, 'Subscription cancelled.')
+    return redirect('dashboard')
+
+
+@login_required
+def subscription_detail(request, subscription_id):
+    try:
+        sub = MonthlySubscription.objects.select_related('schedule__bus', 'schedule__route').get(subscription_id=subscription_id)
+    except MonthlySubscription.DoesNotExist:
+        messages.error(request, 'Subscription not found.')
+        return redirect('dashboard')
+
+    if sub.user != request.user:
+        return HttpResponseForbidden('You cannot view this subscription.')
+
+    context = {
+        'subscription': sub
+    }
+    return render(request, 'bus/subscription_detail.html', context)
 
 def contact_us(request):
     return render(request, 'contact_us.html')
@@ -562,7 +717,7 @@ def dashboard(request):
     # upcoming schedules for quick booking (students only)
     upcoming_schedules = []
     from django.utils import timezone
-    today = timezone.now().date()
+    today = timezone.localdate()
     if not is_authority:
         upcoming_schedules = Schedule.objects.filter(is_active=True, date__gte=today).select_related('bus', 'route').order_by('date', 'departure_time')[:10]
 

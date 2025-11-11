@@ -50,7 +50,8 @@ class Schedule(models.Model):
     arrival_time = models.TimeField()
     available_seats = models.IntegerField(default=40)
     is_active = models.BooleanField(default=True)
-    date = models.DateField(default=timezone.now)
+    # Use localdate to avoid UTC/local timezone date mismatch when defaulting
+    date = models.DateField(default=timezone.localdate)
 
     def __str__(self):
         return f"{self.bus.bus_number} - {self.route.route_name} - {self.departure_time}"
@@ -78,7 +79,9 @@ class Booking(models.Model):
 
 
 class Payment(models.Model):
-    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='bus_payments')
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='bus_payments', null=True, blank=True)
+    # Link to MonthlySubscription when the payment is for a subscription
+    subscription = models.ForeignKey('MonthlySubscription', on_delete=models.CASCADE, related_name='payments', null=True, blank=True)
     transaction_id = models.CharField(max_length=100, unique=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=50, default='bkash')
@@ -106,37 +109,6 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f'{self.user.username} - {self.user_type}'
-
-class Booking(models.Model):
-    PAYMENT_STATUS = (
-        ('pending', 'Pending'),
-        ('completed', 'Completed'),
-        ('failed', 'Failed'),
-        ('cancelled', 'Cancelled'),
-    )
-    
-    booking_id = models.UUIDField(default=uuid.uuid4, unique=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    schedule = models.ForeignKey('Schedule', on_delete=models.CASCADE)
-    booking_date = models.DateTimeField(auto_now_add=True)
-    passengers = models.IntegerField(default=1)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='pending')
-    is_confirmed = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f'Booking {self.booking_id} - {self.user.username}'
-
-class Payment(models.Model):
-    booking = models.ForeignKey('Booking', on_delete=models.CASCADE)
-    transaction_id = models.CharField(max_length=100, unique=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=50, default='bkash')
-    payment_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, default='pending')
-
-    def __str__(self):
-        return f'Payment {self.transaction_id} - {self.amount}'
 
 
 class MonthlySubscription(models.Model):
