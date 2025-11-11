@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <h2>Admin Sign Up</h2>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input class="form-control" name="username" required />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input class="form-control" name="email" type="email" required />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input class="form-control" name="password1" type="password" required />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Confirm Password</label>
+        <input class="form-control" name="password2" type="password" required />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Admin Signup Code</label>
+        <input class="form-control" name="admin_code" type="password" required />
+        <div class="form-text">Enter the admin signup code provided by your system administrator.</div>
+      </div>
+      <div class="d-grid">
+        <button class="btn btn-primary">Create Admin Account</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

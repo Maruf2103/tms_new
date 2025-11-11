@@ -83,6 +83,57 @@
     </div>
     {% endif %}
     
+    {% if recent_bookings %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>My Recent Bookings</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Bus</th>
+                            <th>Route</th>
+                            <th>Date</th>
+                            <th>Seats</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in recent_bookings %}
+                        <tr>
+                            <td>{{ b.booking_id|slice:':8' }}...</td>
+                            <td>{{ b.schedule.bus.bus_number }}</td>
+                            <td>{{ b.schedule.route.start_point }} → {{ b.schedule.route.end_point }}</td>
+                            <td>{{ b.schedule.date }} {{ b.schedule.departure_time }}</td>
+                            <td>{{ b.passengers }}</td>
+                            <td>
+                                {% if b.payment_status == 'completed' %}
+                                <span class="badge bg-success">Confirmed</span>
+                                {% elif b.payment_status == 'pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ b.payment_status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'booking_details' b.booking_id %}">View</a>
+                                {% if b.payment_status != 'cancelled' %}
+                                <a class="btn btn-sm btn-outline-danger" href="{% url 'cancel_booking' b.booking_id %}" onclick="return confirm('Cancel booking?');">Cancel</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
     {# Removed My Recent Bookings section per request - users will manage bookings from the Bookings/Booking Details pages #}
 
     {% if monthly_subscriptions %}

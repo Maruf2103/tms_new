@@ -4,6 +4,8 @@ from buses import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('admin-portal/', views.admin_portal, name='admin_portal'),
+    path('admin-signup/', views.admin_signup, name='admin_signup'),
     path('', views.home, name='home'),
     
     # Authentication URLs - Added by Samia

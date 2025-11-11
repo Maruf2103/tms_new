@@ -3,6 +3,8 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.urls import reverse
+from django.contrib.auth import get_user_model
 from .models import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
@@ -41,7 +43,7 @@ def dashboard(request):
     if request.user.is_authenticated:
         try:
             profile = request.user.bus_user_profile
-            is_authority = profile.user_type == 'authority'
+            is_authority = profile.user_type in ('authority', 'admin')
         except Exception:
             is_authority = False
 
@@ -74,7 +76,7 @@ def dashboard(request):
 # Bus management views
 @login_required
 def bus_registration(request):
-    if not request.user.bus_user_profile.user_type == 'authority':
+    if request.user.bus_user_profile.user_type not in ('authority', 'admin'):
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('home')
         
@@ -100,7 +102,7 @@ def bus_registration(request):
 
 @login_required
 def manage_buses(request):
-    if not request.user.bus_user_profile.user_type == 'authority':
+    if request.user.bus_user_profile.user_type not in ('authority', 'admin'):
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('home')
         
@@ -112,7 +114,7 @@ def manage_buses(request):
 
 @login_required
 def manage_schedules(request):
-    if not request.user.bus_user_profile.user_type == 'authority':
+    if request.user.bus_user_profile.user_type not in ('authority', 'admin'):
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('home')
         
@@ -152,7 +154,7 @@ def manage_schedules(request):
 
 @login_required
 def edit_schedule(request, schedule_id):
-    if not request.user.bus_user_profile.user_type == 'authority':
+    if request.user.bus_user_profile.user_type not in ('authority', 'admin'):
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('home')
         
@@ -664,6 +666,110 @@ def subscription_detail(request, subscription_id):
 def contact_us(request):
     return render(request, 'contact_us.html')
 
+
+def admin_portal(request):
+    """Simple admin portal page that links to Django admin login or to the admin signup view."""
+    return render(request, 'admin_portal/portal.html')
+
+
+def admin_signup(request):
+    """Allow creation of an authority/staff user through a protected signup form.
+
+    Security: this requires settings.ADMIN_SIGNUP_CODE to be set and the user must
+    submit the same code to create an admin account. If ADMIN_SIGNUP_CODE is not
+    configured, signup is disabled.
+    """
+    from django.conf import settings
+    User = get_user_model()
+
+    # if no admin signup code in settings, disallow public signups
+    admin_code_required = getattr(settings, 'ADMIN_SIGNUP_CODE', None)
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        admin_code = request.POST.get('admin_code')
+
+        if admin_code_required and admin_code != admin_code_required:
+            messages.error(request, 'Invalid admin signup code.')
+            return render(request, 'admin_portal/signup.html')
+
+        if password1 != password2:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'admin_portal/signup.html')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Username already taken.')
+            return render(request, 'admin_portal/signup.html')
+
+        try:
+            user = User.objects.create_user(username=username, email=email, password=password1)
+            # Mark as staff so they can access admin-like pages
+            user.is_staff = True
+            user.save()
+
+            # create a UserProfile entry so existing authority checks work
+            try:
+                UserProfile.objects.create(user=user, user_type='authority')
+            except Exception:
+                # If UserProfile model not available for some reason, continue
+                pass
+
+            # Auto-login the newly created admin and redirect to in-site authority panel
+            try:
+                login(request, user)
+            except Exception:
+                pass
+
+            messages.success(request, 'Admin account created and signed in.')
+            return redirect('authority_panel')
+        except Exception as e:
+            messages.error(request, f'Error creating admin account: {e}')
+            return render(request, 'admin_portal/signup.html')
+
+    # GET
+    if not admin_code_required:
+        # If no signup code configured, disallow creating admin accounts from the site.
+        messages.info(request, 'Admin signup is disabled on this installation. Configure ADMIN_SIGNUP_CODE in settings to enable it.')
+        return render(request, 'admin_portal/portal.html')
+
+    return render(request, 'admin_portal/signup.html')
+
+
+def admin_signin(request):
+    """Admin sign in that signs into the site and redirects to the in-site authority panel."""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            # Only allow staff or users with authority profile
+            allowed = False
+            try:
+                profile = getattr(user, 'bus_user_profile', None)
+                if profile and profile.user_type in ('authority', 'admin'):
+                    allowed = True
+            except Exception:
+                allowed = False
+
+            if user.is_staff:
+                allowed = True
+
+            if not allowed:
+                messages.error(request, 'You do not have admin privileges for the site.')
+                return render(request, 'admin_portal/signin.html')
+
+            login(request, user)
+            messages.success(request, f'Welcome, {user.username}.')
+            return redirect('authority_panel')
+        else:
+            messages.error(request, 'Invalid username or password.')
+
+    return render(request, 'admin_portal/signin.html')
+
 # =============================================
 # USER AUTHENTICATION SYSTEM - ADDED BY SAMIA
 # =============================================
@@ -730,7 +836,7 @@ def signin(request):
             
             try:
                 profile = UserProfile.objects.get(user=user)
-                if profile.user_type == 'authority':
+                if profile.user_type in ('authority', 'admin'):
                     return redirect('authority_panel')
                 else:
                     return redirect('dashboard')
@@ -756,7 +862,7 @@ def dashboard(request):
         user_profile = UserProfile.objects.create(user=request.user, user_type='student')
     
     # determine authority
-    is_authority = user_profile.user_type == 'authority'
+    is_authority = user_profile.user_type in ('authority', 'admin')
 
     # upcoming schedules for quick booking (students only)
     upcoming_schedules = []
@@ -774,6 +880,15 @@ def dashboard(request):
         'is_authority': is_authority,
         'upcoming_schedules': upcoming_schedules,
     }
+    # include recent bookings for the logged-in user so they can manage/cancel from dashboard
+    recent_bookings = []
+    if request.user.is_authenticated:
+        try:
+            recent_bookings = Booking.objects.select_related('schedule__bus', 'schedule__route').filter(user=request.user).exclude(payment_status='cancelled').order_by('-booking_date')[:8]
+        except Exception:
+            recent_bookings = []
+
+    context['recent_bookings'] = recent_bookings
     return render(request, 'dashboard.html', context)
 
 @login_required
@@ -805,7 +920,7 @@ def authority_panel(request):
     # Authority panel for transport management
     try:
         user_profile = UserProfile.objects.get(user=request.user)
-        if user_profile.user_type != 'authority':
+        if user_profile.user_type not in ('authority', 'admin'):
             messages.error(request, 'Access denied! Authority panel only.')
             return redirect('dashboard')
     except UserProfile.DoesNotExist:
@@ -835,7 +950,7 @@ def manage_buses(request):
     # Manage buses - add, edit, delete
     try:
         user_profile = UserProfile.objects.get(user=request.user)
-        if user_profile.user_type != 'authority':
+        if user_profile.user_type not in ('authority', 'admin'):
             return redirect('dashboard')
     except UserProfile.DoesNotExist:
         return redirect('dashboard')
@@ -868,7 +983,7 @@ def manage_routes(request):
     # Manage routes
     try:
         user_profile = UserProfile.objects.get(user=request.user)
-        if user_profile.user_type != 'authority':
+        if user_profile.user_type not in ('authority', 'admin'):
             return redirect('dashboard')
     except UserProfile.DoesNotExist:
         return redirect('dashboard')
@@ -903,7 +1018,7 @@ def manage_schedules(request):
     # Manage bus schedules
     try:
         user_profile = UserProfile.objects.get(user=request.user)
-        if user_profile.user_type != 'authority':
+        if user_profile.user_type not in ('authority', 'admin'):
             return redirect('dashboard')
     except UserProfile.DoesNotExist:
         return redirect('dashboard')
@@ -945,13 +1060,155 @@ def view_bookings(request):
     # View all bookings
     try:
         user_profile = UserProfile.objects.get(user=request.user)
-        if user_profile.user_type != 'authority':
+        if user_profile.user_type not in ('authority', 'admin'):
             return redirect('dashboard')
     except UserProfile.DoesNotExist:
         return redirect('dashboard')
     
     bookings = Booking.objects.select_related('user', 'schedule').order_by('-booking_date')
     return render(request, 'authority/view_bookings.html', {'bookings': bookings})
+
+
+@login_required
+def manage_users(request):
+    """Authority-only user management: list, paginate, and quick actions."""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        if user_profile.user_type not in ('authority', 'admin'):
+            messages.error(request, 'Access denied! Authority panel only.')
+            return redirect('dashboard')
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'Access denied! Please complete your profile.')
+        return redirect('dashboard')
+
+    User = get_user_model()
+    q = request.GET.get('q', '').strip()
+    users = User.objects.all().order_by('username')
+    if q:
+        users = users.filter(username__icontains=q) | users.filter(email__icontains=q)
+
+    # pagination
+    page = request.GET.get('page', 1)
+    paginator = Paginator(users, 25)
+    try:
+        users_page = paginator.page(page)
+    except Exception:
+        users_page = paginator.page(1)
+
+    context = {
+        'users': users_page,
+        'q': q,
+        'paginator': paginator,
+        'page_obj': users_page,
+    }
+    return render(request, 'authority/manage_users.html', context)
+
+
+@login_required
+def edit_user(request, user_id):
+    """Edit a single user's role and active/staff flags."""
+    try:
+        profile = UserProfile.objects.get(user=request.user)
+        if profile.user_type not in ('authority', 'admin'):
+            messages.error(request, 'Access denied!')
+            return redirect('dashboard')
+    except Exception:
+        messages.error(request, 'Access denied!')
+        return redirect('dashboard')
+
+    User = get_user_model()
+    try:
+        target = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+        return redirect('manage_users')
+
+    # Ensure we don't allow editing the currently logged-in user role to avoid lockout
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        is_active = bool(request.POST.get('is_active'))
+        is_staff = bool(request.POST.get('is_staff'))
+        user_type = request.POST.get('user_type', 'student')
+
+        target.email = email or target.email
+        target.is_active = is_active
+        target.is_staff = is_staff
+        try:
+            target.save()
+        except Exception:
+            messages.error(request, 'Could not save user changes.')
+            return redirect('edit_user', user_id=user_id)
+
+        # update or create UserProfile
+        try:
+            up, created = UserProfile.objects.get_or_create(user=target)
+            up.user_type = user_type
+            up.save()
+        except Exception:
+            pass
+
+        messages.success(request, 'User updated.')
+        return redirect('manage_users')
+
+    # GET
+    try:
+        user_profile = UserProfile.objects.get(user=target)
+    except Exception:
+        user_profile = None
+
+    context = {
+        'target': target,
+        'profile': user_profile,
+    }
+    return render(request, 'authority/edit_user.html', context)
+
+
+@login_required
+def toggle_user_active(request, user_id):
+    try:
+        profile = UserProfile.objects.get(user=request.user)
+        if profile.user_type not in ('authority', 'admin'):
+            messages.error(request, 'Access denied!')
+            return redirect('dashboard')
+    except Exception:
+        messages.error(request, 'Access denied!')
+        return redirect('dashboard')
+
+    User = get_user_model()
+    try:
+        target = User.objects.get(id=user_id)
+        target.is_active = not target.is_active
+        target.save()
+        messages.success(request, 'User active state toggled.')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+
+    return redirect('manage_users')
+
+
+@login_required
+def delete_user(request, user_id):
+    try:
+        profile = UserProfile.objects.get(user=request.user)
+        if profile.user_type not in ('authority', 'admin'):
+            messages.error(request, 'Access denied!')
+            return redirect('dashboard')
+    except Exception:
+        messages.error(request, 'Access denied!')
+        return redirect('dashboard')
+
+    User = get_user_model()
+    try:
+        target = User.objects.get(id=user_id)
+        if target == request.user:
+            messages.error(request, 'You cannot delete your own account.')
+            return redirect('manage_users')
+        target.delete()
+        messages.success(request, 'User deleted.')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+
+    return redirect('manage_users')
 
 # Missing view functions - Added to fix URL references
 def make_payment(request):

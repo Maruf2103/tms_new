@@ -206,7 +206,8 @@ def cancel_registration(request, registration_id):
 @login_required
 def all_registrations(request):
     """View all registrations (Authority only)"""
-    if request.user.user_type != 'authority':
+    profile = getattr(request.user, 'bus_user_profile', None)
+    if not ((profile and profile.user_type in ('authority', 'admin')) or request.user.is_staff):
         messages.error(request, 'Access denied. Authority access required.')
         return redirect('accounts:dashboard')
 

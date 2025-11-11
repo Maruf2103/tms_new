@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <h2>Admin Portal</h2>
+    <p>Admins can sign in to the Django admin site or, if you have an admin signup code, create an admin account.</p>
+    <div class="d-grid gap-2">
+      <a class="btn btn-secondary" href="{% url 'admin_signin' %}">Admin Sign In</a>
+      <a class="btn btn-outline-primary" href="{% url 'admin_signup' %}">Admin Sign Up</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

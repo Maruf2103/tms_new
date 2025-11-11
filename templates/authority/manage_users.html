@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Manage Users</h3>
+  <form class="d-flex" method="get">
+    <input name="q" class="form-control me-2" placeholder="search username or email" value="{{ q }}" />
+    <button class="btn btn-outline-secondary">Search</button>
+  </form>
+</div>
+
+<table class="table table-sm table-striped">
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Type</th>
+      <th>Staff</th>
+      <th>Active</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for u in users %}
+    <tr>
+      <td>{{ u.username }}</td>
+      <td>{{ u.email }}</td>
+      <td>{% if u.bus_user_profile %}{{ u.bus_user_profile.user_type }}{% else %}-{% endif %}</td>
+      <td>{{ u.is_staff }}</td>
+      <td>{{ u.is_active }}</td>
+      <td>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'edit_user' u.id %}">Edit</a>
+        <a class="btn btn-sm btn-outline-warning" href="{% url 'toggle_user_active' u.id %}">{% if u.is_active %}Deactivate{% else %}Activate{% endif %}</a>
+        <a class="btn btn-sm btn-outline-danger" href="{% url 'delete_user' u.id %}" onclick="return confirm('Delete user {{ u.username }}?');">Delete</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<nav aria-label="Page navigation">
+  <ul class="pagination">
+    {% if page_obj.has_previous %}
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}">Previous</a></li>
+    {% endif %}
+    <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+    {% if page_obj.has_next %}
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}">Next</a></li>
+    {% endif %}
+  </ul>
+</nav>
+
+{% endblock %}

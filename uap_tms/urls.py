@@ -4,7 +4,11 @@ from buses import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('admin-portal/', views.admin_portal, name='admin_portal'),
+    path('admin-signup/', views.admin_signup, name='admin_signup'),
+    path('admin-signin/', views.admin_signin, name='admin_signin'),
     path('', views.home, name='home'),
+    path('authority-panel/', views.authority_panel, name='authority_panel'),
     path('signup/', views.signup, name='signup'),
     path('signin/', views.signin, name='signin'),
     path('sign-out/', views.sign_out, name='sign_out'),
@@ -25,7 +29,12 @@ urlpatterns = [
     
     # Admin management URLs
     path('manage-buses/', views.manage_buses, name='manage_buses'),
+    path('manage-routes/', views.manage_routes, name='manage_routes'),
     path('manage-schedules/', views.manage_schedules, name='manage_schedules'),
     path('edit-schedule/<int:schedule_id>/', views.edit_schedule, name='edit_schedule'),
     path('toggle-schedule/<int:schedule_id>/', views.toggle_schedule, name='toggle_schedule'),
+    path('manage-users/', views.manage_users, name='manage_users'),
+    path('edit-user/<int:user_id>/', views.edit_user, name='edit_user'),
+    path('toggle-user-active/<int:user_id>/', views.toggle_user_active, name='toggle_user_active'),
+    path('delete-user/<int:user_id>/', views.delete_user, name='delete_user'),
 ]

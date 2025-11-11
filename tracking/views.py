@@ -86,7 +86,9 @@ def get_bus_location_api(request, bus_id):
 @login_required
 def manage_tracking(request):
     """Manage tracking (Authority only)"""
-    if request.user.user_type != 'authority':
+    # allow either a bus_user_profile with user_type authority/admin or any staff user
+    profile = getattr(request.user, 'bus_user_profile', None)
+    if not ((profile and profile.user_type in ('authority', 'admin')) or request.user.is_staff):
         messages.error(request, 'Access denied. Authority access required.')
         return redirect('accounts:dashboard')
     
@@ -104,7 +106,8 @@ def manage_tracking(request):
 @login_required
 def update_location(request):
     """Update bus location (Authority only)"""
-    if request.user.user_type != 'authority':
+    profile = getattr(request.user, 'bus_user_profile', None)
+    if not ((profile and profile.user_type in ('authority', 'admin')) or request.user.is_staff):
         messages.error(request, 'Access denied. Authority access required.')
         return redirect('accounts:dashboard')
     
@@ -129,7 +132,8 @@ def update_location(request):
 @login_required
 def update_status(request, bus_id=None):
     """Update bus status (Authority only)"""
-    if request.user.user_type != 'authority':
+    profile = getattr(request.user, 'bus_user_profile', None)
+    if not ((profile and profile.user_type in ('authority', 'admin')) or request.user.is_staff):
         messages.error(request, 'Access denied. Authority access required.')
         return redirect('accounts:dashboard')
     
@@ -155,7 +159,8 @@ def update_status(request, bus_id=None):
 @login_required
 def create_notification(request):
     """Create notification (Authority only)"""
-    if request.user.user_type != 'authority':
+    profile = getattr(request.user, 'bus_user_profile', None)
+    if not ((profile and profile.user_type in ('authority', 'admin')) or request.user.is_staff):
         messages.error(request, 'Access denied. Authority access required.')
         return redirect('accounts:dashboard')
     

@@ -84,3 +84,8 @@ LOGIN_URL = '/login/'
 # Session settings
 SESSION_COOKIE_AGE = 1209600  # 2 weeks
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# Optional: set a secret code that allows creating admin/staff accounts
+# via the site admin signup form. If not set, admin signup is disabled.
+# Example (do NOT commit a real secret to source control):
+# ADMIN_SIGNUP_CODE = 'change-this-to-a-secure-code'
